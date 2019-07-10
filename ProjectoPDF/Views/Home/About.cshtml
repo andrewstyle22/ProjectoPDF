@@ -3,42 +3,41 @@
 }
 
 <!--https://stackoverflow.com/questions/27607526/zoom-on-simple-pdf-js-viewer-->
-<h1>Simple PDF.js with zoom</h1>
 <button id="upload-button">Select PDF</button>
 <input type="file" id="file-to-upload" accept="application/pdf" />
 <div id="controlpdf" style="text-align: center">
-    <button id="prevbutton" type="button">prev page</button>
-    <button id="nextbutton" type="button">next page</button>
-    <button id="zoominbutton" type="button">zoom in</button>
-    <button id="zoomoutbutton" type="button">zoom out</button>
-    <button id="cmd">generate PDF</button>
+	<button id="prevbutton" type="button">prev page</button>
+	<button id="nextbutton" type="button">next page</button>
+	<button id="zoominbutton" type="button">zoom in</button>
+	<button id="zoomoutbutton" type="button">zoom out</button>
+	<button id="cmd">generate PDF</button>
 </div>
 <div style="text-align: center;margin-top: 17px;margin-bottom: 10px;font-weight: bolder;">Choose Color</div>
 <div style="text-align: center">
-<button type="button" style="background:green;" id="green" onclick="color(this)">green</button>
-<button type="button" style="background:blue;" id="blue" onclick="color(this)">blue</button>
-<button type="button" style="background:red;" id="red" onclick="color(this)">red</button>
-<button type="button" style="background:yellow;" id="yellow" onclick="color(this)">yellow</button>
-<button type="button" style="background:orange;" id="orange" onclick="color(this)">orange</button>
-<button type="button" style="background:black;color:white" id="black" onclick="color(this)">black</button>
-<button type="button" style="background:white;" id="white" onclick="color(this)">white</button>
-<button type="button">Eraser</button>
+	<button type="button" style="background:green;" id="green" onclick="color(this)">green</button>
+	<button type="button" style="background:blue;" id="blue" onclick="color(this)">blue</button>
+	<button type="button" style="background:red;" id="red" onclick="color(this)">red</button>
+	<button type="button" style="background:yellow;" id="yellow" onclick="color(this)">yellow</button>
+	<button type="button" style="background:orange;" id="orange" onclick="color(this)">orange</button>
+	<button type="button" style="background:black;color:white" id="black" onclick="color(this)">black</button>
+	<button type="button" style="background:white;" id="white" onclick="color(this)">white</button>
+	<button type="button">Eraser</button>
 
-<button type="button" value="save" id="btn" size="30" onclick="save()">Save</button>
-<button type="button" value="clear" id="clr" size="23" onclick="erase()">Clear</button>
-<br />
-<br />
+	<button type="button" value="save" id="btn" size="30" onclick="save()">Save</button>
+	<button type="button" value="clear" id="clr" size="23" onclick="erase()">Clear</button>
+	<br />
+	<br />
 
-<canvas id="the-canvas" style="border: 1px solid black;"></canvas>
-<img id="canvasimg"  style="display:none;">
+	<canvas id="the-canvas" style="border: 1px solid black;"></canvas>
+	<img id="canvasimg"  style="display:none;">
 </div>
 <div id="annotation-layer"></div>
 <div id="editor"></div>
 <script id="script">
     var myState = {
-        pdf: null,
-        currentPage: 1,
-        zoom: 1
+			pdf: null,
+			currentPage: 1,
+			zoom: 1
     }
     var pageNum = 1;
     var pdfScale = 1; // make pdfScale a global variable
@@ -59,9 +58,16 @@
     var drawCanvas = '';
     var drawCcontext = '';
 
+		var canvasWidthOringin = 0;
+		var canvasHeightOringin = 0;
+		var cont = 0;
+
+		var arrayImageData = [];
+
     function showPDF(pdf_url) {
 			$("#pdf-loader").show();
 			pdfDoc = PDFJS.getDocument(pdf_url).then(function getPdfHelloWorld(pdf) {
+				console.log('pdf: ', pdf);
 				displayPage(pdf, 1);
 				shownPdf = pdf;
 			});
@@ -74,6 +80,11 @@
 				$("#pdf-contents").show();
 				$("#pdf-total-pages").text(__TOTAL_PAGES);
 
+				for(var x = 0;x < __TOTAL_PAGES; x++) {
+					var data = { 'numPage': x +1, 'dataImage': ''};
+					arrayImageData.push(data);
+				}
+				console.log('arrayImageData: ', arrayImageData);
 				// Show the first page
 				//showPage(1);
 			}).catch(function (error) {
@@ -87,15 +98,23 @@
 
     function renderPage(page) {
 			var scale = pdfScale; // render with global pdfScale variable
-			var viewport = page.getViewport(scale);
+			var viewport = page.getViewport(scale); // width and height are in points no pixels
+			console.log('viewport: ', viewport);
 			var canvas = document.getElementById('the-canvas');
+			console.log('canvas: ', canvas);
 			drawCanvas = canvas;
 			var context = canvas.getContext('2d');
 			drawCcontext = context;
 			canvas.height = viewport.height;
-			heightCanvas = viewport.height;
-			widthCanvas = viewport.width;
+			heightCanvas = viewport.height; // use in paint of canvas
+			widthCanvas = viewport.width; // use in paint of canvas
 			canvas.width = viewport.width;
+			if ( cont < 1 ) {
+				canvasHeightOringin = viewport.height * 0.352778; // point => mm
+				canvasWidthOringin = viewport.width * 0.352778;
+				cont++;
+			}
+			console.log('canvasHeightOringin: ', canvasHeightOringin);
 			var renderContext = {
 				canvasContext: context,
 				viewport: viewport
@@ -110,6 +129,8 @@
 
     var nextbutton = document.getElementById("nextbutton");
     nextbutton.onclick = function () {
+			console.log('pageNum: ', pageNum);
+			console.log('drawCanvas: ', drawCanvas.toDataURL("image/jpeg", 1.0));
 			if (pageNum >= shownPdf.numPages) {
 				return;
 			}
@@ -119,6 +140,8 @@
 
     var prevbutton = document.getElementById("prevbutton");
     prevbutton.onclick = function () {
+			console.log('pageNum: ', pageNum);
+			console.log('drawCanvas: ', drawCanvas.toDataURL("image/jpeg", 1.0));// string
 			if (pageNum <= 1) {
 				return;
 			}
@@ -181,12 +204,20 @@
     };
     console.log('doc: ', doc);
     $('#cmd').click(function () {
-        doc.fromHTML($('#the-canvas').html(), widthCanvas, heightCanvas, {
+        /*doc.fromHTML($('#the-canvas').html(), widthCanvas, heightCanvas, {
             'width': widthCanvas,
             'elementHandlers': specialElementHandlers
         });
-        doc.save('sample-file.pdf');
+        doc.save('sample-file.pdf');*/
+		drawCanvas.scale 
+		const imgData = drawCanvas.toDataURL("image/jpeg", 1.0); 
+		var pdf = new jsPDF('p', 'mm', [canvasWidthOringin , canvasHeightOringin  ]);// size of PDF
+		pdf.addImage(imgData, 'JPEG', 0, 0, canvasWidthOringin , canvasHeightOringin ); 
+		
+		//pdf.save("download.jpg"); don´t work
+		pdf.save("download.pdf"); 
     });
+
     //////////////////////////////////////////////
 
     /////// draw canvas  ///////////////////
@@ -201,23 +232,23 @@
         y = 2;
 
     function init() {
-			canvas = drawCanvas; //document.getElementById('the-canvas');
-			ctx = drawCcontext; //canvas.getContext("2d");
-			w = widthCanvas;
-			h = heightCanvas;
+		canvas = drawCanvas; //document.getElementById('the-canvas');
+		ctx = drawCcontext; //canvas.getContext("2d");
+		w = widthCanvas;
+		h = heightCanvas;
 
-			canvas.addEventListener("mousemove", function (e) {
-					findxy('move', e)
-			}, false);
-			canvas.addEventListener("mousedown", function (e) {
-					findxy('down', e)
-			}, false);
-			canvas.addEventListener("mouseup", function (e) {
-					findxy('up', e)
-			}, false);
-			canvas.addEventListener("mouseout", function (e) {
-					findxy('out', e)
-			}, false);
+		canvas.addEventListener("mousemove", function (e) {
+				findxy('move', e)
+		}, false);
+		canvas.addEventListener("mousedown", function (e) {
+				findxy('down', e)
+		}, false);
+		canvas.addEventListener("mouseup", function (e) {
+				findxy('up', e)
+		}, false);
+		canvas.addEventListener("mouseout", function (e) {
+				findxy('out', e)
+		}, false);
     }
 
     function color(obj) {
