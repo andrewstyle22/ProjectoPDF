@@ -27,7 +27,6 @@
 	<button type="button" value="clear" id="clr" size="23" onclick="erase()">Clear</button>
 	<br />
 	<br />
-
 	<canvas id="the-canvas" style="border: 1px solid black;"></canvas>
 	<img id="canvasimg"  style="display:none;">
 </div>
@@ -68,9 +67,11 @@
 			$("#pdf-loader").show();
 			pdfDoc = PDFJS.getDocument(pdf_url).then(function getPdfHelloWorld(pdf) {
 				console.log('pdf: ', pdf);
+				console.log('pdfDoc: ', pdfDoc);
 				displayPage(pdf, 1);
 				shownPdf = pdf;
 			});
+			console.log('shownPdf: ', shownPdf);
 			PDFJS.getDocument({ url: pdf_url }).then(function (pdf_doc) {
 				__PDF_DOC = pdf_doc;
 				__TOTAL_PAGES = __PDF_DOC.numPages;
@@ -101,6 +102,7 @@
 			var viewport = page.getViewport(scale); // width and height are in points no pixels
 			console.log('viewport: ', viewport);
 			var canvas = document.getElementById('the-canvas');
+			var picture = document.getElementById('the-picture');
 			console.log('canvas: ', canvas);
 			drawCanvas = canvas;
 			var context = canvas.getContext('2d');
@@ -142,32 +144,30 @@
 			console.log('pageNum: ', pageNum);
 			//console.log('drawCanvas: ', drawCanvas.toDataURL("image/jpeg", 1.0));
 			//saveArrayDataImage(pageNum, drawCanvas.toDataURL("image/jpeg", 1.0));
-			arrayImageData[pageNum - 1].dataImage = drawCanvas.toDataURL("image/jpeg", 1.0);
+			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL();
 			if (pageNum >= shownPdf.numPages) {
 				return;
 			}
 			//console.log('arrayImageData[pageNum].dataImage: ', arrayImageData[pageNum - 1]);
 			
 			var img = new Image();
-			if(arrayImageData[pageNum - 1].dataImage !== "") {
-				console.log('entró');
-				img.onload = function () {
-					canvas.width = img.width;
-					canvas.height = img.height;
+			img.onload = function () {
+				canvas.width = img.width;
+				canvas.height = img.height;
 
-					//ctx.drawImage(img, 0, 0);
-					
-					drawCcontext.drawImage(img, 0, 0);
-				};
+				ctx.drawImage(img, 0, 0);
+				
+				//drawCcontext.drawImage(img, 0, 0);
+			};
 				//arrayImageData[pageNum - 1].dataImage;
 
 				// drawCcontext.drawImage(arrayImageData[pageNum - 1].dataImage, widthCanvas, heightCanvas);
-			}
 			
 			pageNum++;
 			displayPage(shownPdf, pageNum);
+
 			img.src = arrayImageData[pageNum - 1].dataImage; 
-			drawCcontext.drawImage(img, 0, 0);
+			//drawCcontext.drawImage(img, widthCanvas, heightCanvas);
     }
 
     var prevbutton = document.getElementById("prevbutton");
@@ -175,33 +175,31 @@
 			console.log('pageNum: ', pageNum);
 			//console.log('drawCanvas: ', drawCanvas.toDataURL("image/jpeg", 1.0));// string
 			//saveArrayDataImage(pageNum, drawCanvas.toDataURL("image/jpeg", 1.0));
-			arrayImageData[pageNum - 1].dataImage = drawCanvas.toDataURL("image/jpeg", 1.0);
+			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL();
 			if (pageNum <= 1) {
 				return;
 			}
 			//console.log('arrayImageData[pageNum].dataImage: ', arrayImageData[pageNum - 1].dataImage);
 			
 			var img = new Image();
-			if(arrayImageData[pageNum - 1].dataImage.length !== "") {
-				img.onload = function () {
-					canvas.width = img.width;
-					canvas.height = img.height;
+			img.onload = function () {
+				canvas.width = img.width;
+				canvas.height = img.height;
 
-					drawCcontext.drawImage(img, 0, 0);
-					//drawCcontext.drawImage(img, 0, 0);
+				ctx.drawImage(img, 0, 0);
+				//drawCcontext.drawImage(img, 0, 0);
+			};
+			//console.log('numPage: ', arrayImageData[pageNum - 1].numPage);
+			//img.src = URL.createObjectURL(arrayImageData[pageNum - 1].dataImage);
+			//img.src = URL.createObjectURL(inputPicture);
+			//drawCcontext.drawImage(arrayImageData[pageNum - 1].dataImage, widthCanvas, heightCanvas);
 
-					//console.log(myCanvas.toDataURL('image/jpeg'));
-				};
-				console.log('numPage: ', arrayImageData[pageNum - 1].numPage);
-				//img.src = URL.createObjectURL(arrayImageData[pageNum - 1].dataImage);
-				//img.src = URL.createObjectURL(inputPicture);
-				//drawCcontext.drawImage(arrayImageData[pageNum - 1].dataImage, widthCanvas, heightCanvas);
-			}
 			pageNum--;
 			console.log('pageNum: ',pageNum);
 			displayPage(shownPdf, pageNum);
-			img.src = arrayImageData[pageNum - 1].dataImage; 
-			drawCcontext.drawImage(img, 0, 0);
+
+			img.src = arrayImageData[pageNum - 1].dataImage;
+			//drawCcontext.drawImage(img, widthCanvas, heightCanvas);
     }
 
     var zoominbutton = document.getElementById("zoominbutton");
@@ -259,18 +257,18 @@
     };
     console.log('doc: ', doc);
     $('#cmd').click(function () {
-        /*doc.fromHTML($('#the-canvas').html(), widthCanvas, heightCanvas, {
-            'width': widthCanvas,
-            'elementHandlers': specialElementHandlers
-        });
-        doc.save('sample-file.pdf');*/
-		drawCanvas.scale 
-		const imgData = drawCanvas.toDataURL("image/jpeg", 1.0); 
-		var pdf = new jsPDF('p', 'mm', [canvasWidthOringin , canvasHeightOringin  ]);// size of PDF
-		pdf.addImage(imgData, 'JPEG', 0, 0, canvasWidthOringin , canvasHeightOringin ); 
-		
-		//pdf.save("download.jpg"); don´t work
-		pdf.save("download.pdf"); 
+			/*doc.fromHTML($('#the-canvas').html(), widthCanvas, heightCanvas, {
+					'width': widthCanvas,
+					'elementHandlers': specialElementHandlers
+			});
+			doc.save('sample-file.pdf');*/
+			drawCanvas.scale 
+			const imgData = drawCanvas.toDataURL(); 
+			var pdf = new jsPDF('p', 'mm', [canvasWidthOringin , canvasHeightOringin  ]);// size of PDF
+			pdf.addImage(imgData, 'JPEG', 0, 0, canvasWidthOringin , canvasHeightOringin ); 
+			
+			//pdf.save("download.jpg"); don´t work
+			pdf.save("download.pdf"); 
     });
 
     //////////////////////////////////////////////
@@ -287,8 +285,8 @@
         y = 2;
 
     function init() {
-			canvas = drawCanvas; //document.getElementById('the-canvas');
-			ctx = drawCcontext; //canvas.getContext("2d");
+			canvas = document.getElementById('the-canvas');//drawCanvas; //document.getElementById('the-canvas');
+			ctx = canvas.getContext("2d");//drawCcontext; //canvas.getContext("2d");
 			w = widthCanvas;
 			h = heightCanvas;
 
