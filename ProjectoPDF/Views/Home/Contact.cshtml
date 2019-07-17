@@ -1,6 +1,20 @@
 ﻿@{
     ViewBag.Title = "Contact";
 }
+<style>
+    .pdfobject-container {
+        max-width: 100%;
+        width: 600px;
+        height: 600px;
+        border: 10px solid rgba(0,0,0,.2);
+        margin: 0;
+    }
+</style>
+<div id="my-pdf"></div>
+<script>
+    PDFObject.embed("~/../18178221710.pdf");
+</script>
+<!--
 <button id="upload-button">Select PDF</button>
 <input type="file" id="file-to-upload" accept="application/pdf" />
 <div id="controlpdf" style="text-align: center">
@@ -22,8 +36,10 @@
     <br />
 
     <canvas id="the-canvas" style="border: 1px solid black;"></canvas>
-</div>
+</div>-->
+<!--
 <script id="script">
+    
     var canvas;
     var context;
     var canvasWidth = 0;
@@ -386,3 +402,4 @@
     });
 
 </script>
+-->
