@@ -276,9 +276,11 @@
 			for (let x=0;x<__TOTAL_PAGES;x++){
 				console.log('save');
 				const imgData = arrayImageData[x].dataImage;
-				//pdf.setPage();//declare that we're working on that page
-				await pdf.addPage();// adds a new page to the pdf preview
-				await pdf.addImage(imgData, 'jpeg', 0, 0, canvasWidthOringin , canvasHeightOringin); 
+				pdf.setPage(x+1);//declare that we're working on that page
+				//await pdf.addPage();// adds a new page to the pdf preview
+				console.log('imgData', imgData);
+				pdf.addImage(imgData, 'jpeg', 0, 0, canvasWidthOringin , canvasHeightOringin);
+				(__TOTAL_PAGES - 1 !== x ) ? pdf.addPage(): '';
 			}
 			//const imgData = drawCanvas.toDataURL(); 
 			//var pdf = new jsPDF('p', 'mm', [canvasWidthOringin , canvasHeightOringin]);// size of PDF
