@@ -10,7 +10,7 @@
 	<button id="nextbutton" type="button">next page</button>
 	<button id="zoominbutton" type="button">zoom in</button>
 	<button id="zoomoutbutton" type="button">zoom out</button>
-	<button id="cmd">generate PDF</button>
+	<button id="cmd" style="visibility: hidden;">generate PDF</button>
 </div>
 <div style="text-align: center;margin-top: 17px;margin-bottom: 10px;font-weight: bolder;">Choose Color</div>
 <div style="text-align: center">
@@ -23,7 +23,7 @@
 	<button type="button" style="background:white;" id="white" onclick="color(this)">white</button>
 	<!--<button type="button">Eraser</button>-->
 
-	<button type="button" value="save" id="btn" size="30" onclick="save()">Save</button>
+	<!--<button type="button" value="save" id="btn" size="30" onclick="save()">Save</button>-->
 	<button type="button" value="clear" id="clr" size="23" onclick="erase()">Clear</button>
 	<br />
 	<br />
@@ -63,6 +63,8 @@
 		var cont = 0;
 
 		var arrayImageData = [];
+
+    var pagesSeen = 0;
 
     async function showPDF(pdf_url) {
 			$("#pdf-loader").show();
@@ -119,7 +121,7 @@
 				viewport: viewport
 			};
 			page.render(renderContext);
-
+      $("#cmd").css('visibility', 'visible');
 			init();
     }
 
@@ -138,7 +140,7 @@
 
     var nextbutton = document.getElementById("nextbutton");
     nextbutton.onclick = function () {
-			console.log('URL: ', URL.createObjectURL($("#file-to-upload").get(0).files[0])); //blob:http://localhost:57637/34c44839-91f8-405a-8a4b-5943668077fc
+			//console.log('URL: ', URL.createObjectURL($("#file-to-upload").get(0).files[0])); //blob:http://localhost:57637/34c44839-91f8-405a-8a4b-5943668077fc
 			console.log('pageNum: ', pageNum);
 			//console.log('drawCanvas: ', drawCanvas.toDataURL("image/jpeg", 1.0));
 			//console.log('canvas: ', canvas.toDataURL("image/jpeg", 1.0));
@@ -154,12 +156,13 @@
 				//canvas.width = img.width;
 				//canvas.height = img.height;
 				//ctx.drawImage(img, 0, 0);
-			  ctx.drawImage(img, 0, 0);
+			  drawContext.drawImage(img, 0, 0);
 			};
 			//arrayImageData[pageNum - 1].dataImage;
 			// drawContext.drawImage(arrayImageData[pageNum - 1].dataImage, widthCanvas, heightCanvas);
 			
 			pageNum++;
+      pagesSeen = pageNum;
 			displayPage(shownPdf, pageNum);
 			// console.log('src: ', arrayImageData[pageNum - 1].dataImage);
 			// img.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);//arrayImageData[pageNum - 1].dataImage;
@@ -188,7 +191,7 @@
 			img.onload = function () {
 				//canvas.width = img.width;
 				//canvas.height = img.height;
-				ctx.drawImage(img, 0, 0);
+				drawContext.drawImage(img, 0, 0);
 				//drawContext.drawImage(img, 0, 0);
 				//console.log(myCanvas.toDataURL('image/jpeg'));
 			};
@@ -229,22 +232,23 @@
     });
 
     // When user chooses a PDF file
-    $("#file-to-upload").on('change', function (evt) {
-      evt.stopPropagation();
-      evt.preventDefault();
+    $("#file-to-upload").on('change', function () {
       // Validate whether PDF
-      console.log('inicio url: ', URL.createObjectURL($("#file-to-upload").get(0).files[0]));
-      if (['application/pdf'].indexOf($("#file-to-upload").get(0).files[0].type) == -1) {
-        alert('Error : Not a PDF');
-        return;
+      if($("#file-to-upload").get(0).files[0] !== undefined) {
+        if (['application/pdf'].indexOf($("#file-to-upload").get(0).files[0].type) == -1) {
+          alert('Error : Not a PDF');
+          return;
+        }
+        erase();
+        loadData();
+        //arrayImageData = [];
+        //$("#upload-button").hide();
+        console.log('shownPdf: ', shownPdf);
+        
+        $("#cmd").css('visibility', 'hidden');
+        // Send the object url of the pdf
+        showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
       }
-      erase();
-      loadData();
-      //arrayImageData = [];
-      //$("#upload-button").hide();
-      console.log('shownPdf: ', shownPdf);
-      // Send the object url of the pdf
-      showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
     });
 
     // Previous page of the PDF
@@ -264,7 +268,7 @@
       shownPdf; // another global we'll use for the buttons
       url = '' // PDF to load: change this to a file that exists;
 
-      __PDF_DOC,
+      var __PDF_DOC,
       __CURRENT_PAGE,
       __TOTAL_PAGES,
       __PAGE_RENDERING_IN_PROGRESS = 0,
@@ -284,6 +288,8 @@
 		  cont = 0;
 
 		  arrayImageData = [];
+
+      pagesSeen = 0;
     }
 
     function showPage(page_no) {
@@ -360,14 +366,14 @@
       arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 			var pdf = new jsPDF('p', 'mm', [canvasWidthOringin , canvasHeightOringin]);
 			//console.log('__TOTAL_PAGES: ', __TOTAL_PAGES + ' arrayImageData: ', arrayImageData.length);
-			for (let x=0;x < pageNum;x++){
+			for (let x=0;x < pagesSeen;x++){
 				console.log('X');
 				const imgData = arrayImageData[x].dataImage;
 				pdf.setPage(x+1);//declare that we're working on that page
 				//await pdf.addPage();// adds a new page to the pdf preview
 				//console.log('imgData', imgData);
 				pdf.addImage(imgData, 'jpeg', 0, 0, canvasWidthOringin , canvasHeightOringin);
-				(pageNum - 1 !== x ) ? pdf.addPage(): '';
+				(pagesSeen - 1 !== x ) ? pdf.addPage(): '';
 			}
 			await pdf.save("download.pdf"); 
     });
@@ -405,7 +411,7 @@
 
     function init() {
 			canvas = drawCanvas; //document.getElementById('the-canvas');
-			ctx = drawContext; //canvas.getContext("2d");
+			//ctx = drawContext; //canvas.getContext("2d");
 			w = widthCanvas;
 			h = heightCanvas;
 
@@ -461,10 +467,10 @@
 				flag = true;
 				dot_flag = true;
 				if (dot_flag) {
-					ctx.beginPath();
-					ctx.fillStyle = x;
-					ctx.fillRect(currX, currY, 2, 2);
-					ctx.closePath();
+					drawContext.beginPath();
+					drawContext.fillStyle = x;
+					drawContext.fillRect(currX, currY, 2, 2);
+					drawContext.closePath();
 					dot_flag = false;
 				}
 			}
@@ -483,13 +489,13 @@
     }
 
     function draw() {
-			ctx.beginPath();
-			ctx.moveTo(prevX, prevY);
-			ctx.lineTo(currX, currY);
-			ctx.strokeStyle = x;
-			ctx.lineWidth = y;
-			ctx.stroke();
-			ctx.closePath();
+			drawContext.beginPath();
+			drawContext.moveTo(prevX, prevY);
+			drawContext.lineTo(currX, currY);
+			drawContext.strokeStyle = x;
+			drawContext.lineWidth = y;
+			drawContext.stroke();
+			drawContext.closePath();
     }
 
     function erase() {
@@ -498,6 +504,7 @@
 			//var m = confirm("Want to clear");
 			//if (m) {
 				contextErase.clearRect(0, 0, canvasErase.width, canvasErase.height);
+        document.getElementById('the-canvas').val8ue = "";
 				//document.getElementById("canvasimg").style.display = "none";
 			//}
     }
