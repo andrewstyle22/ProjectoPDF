@@ -1,427 +1,156 @@
 ﻿@{
     ViewBag.Title = "About";
 }
+<!--http://usefulangle.com/post/20/pdfjs-tutorial-1-preview-pdf-during-upload-wih-next-prev-buttons-->
+<div class="jumbotron">
+  <!--<input type="file" id="selectPDF" ="openPDF" accept="application/pdf" />-->
+  <button id="upload-button">Select PDF</button>
+  <input type="file" id="file-to-upload" accept="application/pdf" />
 
-<!--https://stackoverflow.com/questions/27607526/zoom-on-simple-pdf-js-viewer-->
-<button id="upload-button">Select PDF</button>
-<input type="file" id="file-to-upload" accept="application/pdf" />
-<div id="controlpdf" style="text-align: center">
-	<button id="prevbutton" type="button">prev page</button>
-	<button id="nextbutton" type="button">next page</button>
-	<button id="zoominbutton" type="button">zoom in</button>
-	<button id="zoomoutbutton" type="button">zoom out</button>
-	<button id="cmd">generate PDF</button>
+  <div id="pdf-main-container">
+    <div id="pdf-loader">Loading document ...</div>
+    <div id="pdf-contents">
+      <div id="pdf-meta">
+        <div id="pdf-buttons">
+          <button id="pdf-prev">Previous</button>
+          <button id="pdf-next">Next</button>
+          <button id="zoom_in">+</button>
+          <button id="zoom_out">-</button>
+        </div>
+        <div id="page-count-container">Page <div id="pdf-current-page"></div> of <div id="pdf-total-pages"></div></div>
+      </div>
+      <canvas id="pdf-canvas" width="400"></canvas>
+      <div id="page-loader">Loading page ...</div>
+    </div>
+  </div>
 </div>
-<div style="text-align: center;margin-top: 17px;margin-bottom: 10px;font-weight: bolder;">Choose Color</div>
-<div style="text-align: center">
-	<button type="button" style="background:green;" id="green" onclick="color(this)">green</button>
-	<button type="button" style="background:blue;" id="blue" onclick="color(this)">blue</button>
-	<button type="button" style="background:red;" id="red" onclick="color(this)">red</button>
-	<button type="button" style="background:yellow;" id="yellow" onclick="color(this)">yellow</button>
-	<button type="button" style="background:orange;" id="orange" onclick="color(this)">orange</button>
-	<button type="button" style="background:black;color:white" id="black" onclick="color(this)">black</button>
-	<button type="button" style="background:white;" id="white" onclick="color(this)">white</button>
-	<button type="button">Eraser</button>
 
-	<button type="button" value="save" id="btn" size="30" onclick="save()">Save</button>
-	<button type="button" value="clear" id="clr" size="23" onclick="erase()">Clear</button>
-	<br />
-	<br />
-
-	<canvas id="the-canvas" style="border: 1px solid black;"></canvas>
-	<img id="canvasimg"  style="display:none;">
+<div class="row">
+    <div class="col-md-4">
+    </div>
+    <div class="col-md-4">
+        <h2>Get more libraries</h2>
+        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
+        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
+    </div>
+    <div class="col-md-4">
+        <h2>Web Hosting</h2>
+        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
+        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+    </div>
 </div>
-<div id="annotation-layer"></div>
-<div id="editor"></div>
-<script id="script">
-    var myState = {
-			pdf: null,
-			currentPage: 1,
-			zoom: 1
-    }
-    var pageNum = 1;
-    var pdfScale = 1; // make pdfScale a global variable
-    var shownPdf; // another global we'll use for the buttons
-    var url = '' // PDF to load: change this to a file that exists;
+<script>
+  var myState = {
+    pdf: null,
+    currentPage: 1,
+    zoom: 1
+  }
+  var __PDF_DOC,
+    __CURRENT_PAGE,
+    __TOTAL_PAGES,
+    __PAGE_RENDERING_IN_PROGRESS = 0,
+    __CANVAS = $('#pdf-canvas').get(0),
+    __CANVAS_CTX = __CANVAS.getContext('2d');
 
-    var __PDF_DOC,
-        __CURRENT_PAGE,
-        __TOTAL_PAGES,
-        __PAGE_RENDERING_IN_PROGRESS = 0,
-        __CANVAS = $('#the-canvas').get(0),
-        __CANVAS_CTX = __CANVAS.getContext('2d');
+  function showPDF(pdf_url) {
+    $("#pdf-loader").show();
 
-    var pdfDoc = '';
+    PDFJS.getDocument({ url: pdf_url }).then(function (pdf_doc) {
+      __PDF_DOC = pdf_doc;
+      __TOTAL_PAGES = __PDF_DOC.numPages;
+      myState.pdf = pdf_doc;
+      // Hide the pdf loader and show pdf container in HTML
+      $("#pdf-loader").hide();
+      $("#pdf-contents").show();
+      $("#pdf-total-pages").text(__TOTAL_PAGES);
 
-    var widthCanvas = 0;
-    var heightCanvas = 0;
-    var drawCanvas = '';
-    var drawContext = '';
+      // Show the first page
+      showPage(1);
+    }).catch(function (error) {
+      // If error re-show the upload button
+      $("#pdf-loader").hide();
+      $("#upload-button").show();
 
-		var canvasWidthOringin = 0;
-		var canvasHeightOringin = 0;
-		var cont = 0;
+      alert(error.message);
+    });;
+  }
 
-		var arrayImageData = [];
+  function showPage(page_no) {
+    __PAGE_RENDERING_IN_PROGRESS = 1;
+    __CURRENT_PAGE = page_no;
 
-    function showPDF(pdf_url) {
-			$("#pdf-loader").show();
-			pdfDoc = PDFJS.getDocument(pdf_url).then(function getPdfHelloWorld(pdf) {
-				console.log('pdf: ', pdf);
-				displayPage(pdf, 1);
-				shownPdf = pdf;
-			});
-			PDFJS.getDocument({ url: pdf_url }).then(function (pdf_doc) {
-				__PDF_DOC = pdf_doc;
-				__TOTAL_PAGES = __PDF_DOC.numPages;
-				myState.pdf = pdf_doc;
-				// Hide the pdf loader and show pdf container in HTML
-				$("#pdf-loader").hide();
-				$("#pdf-contents").show();
-				$("#pdf-total-pages").text(__TOTAL_PAGES);
+    // Disable Prev & Next buttons while page is being loaded
+    $("#pdf-next, #pdf-prev").attr('disabled', 'disabled');
 
-				for(var x = 1;x <= __TOTAL_PAGES; x++) {
-					var data = { numPage: x, dataImage: ''};
-					arrayImageData.push(data);
-				}
-				loadPaGeInit();
-				console.log('pdfDoc: ', pdfDoc);
-				console.log('arrayImageData: ', arrayImageData);
-				// Show the first page
-				//showPage(1);
-			}).catch(function (error) {
-				// If error re-show the upload button
-				$("#pdf-loader").hide();
-				$("#upload-button").show();
+    // While page is being rendered hide the canvas and show a loading message
+    $("#pdf-canvas").hide();
+    $("#page-loader").show();
 
-				alert(error.message);
-			});
-    }
+    // Update current page in HTML
+    $("#pdf-current-page").text(page_no);
 
-    function renderPage(page) {
-			var scale = pdfScale; // render with global pdfScale variable
-			var viewport = page.getViewport(scale); // width and height are in points no pixels
-			console.log('viewport: ', viewport);
-			var canvas = document.getElementById('the-canvas');
-			console.log('canvas: ', canvas);
-			drawCanvas = canvas;
-			var context = canvas.getContext('2d');
-			drawContext = context;
-			canvas.height = viewport.height;
-			heightCanvas = viewport.height; // use in paint of canvas
-			widthCanvas = viewport.width; // use in paint of canvas
-			canvas.width = viewport.width;
-			if ( cont < 1 ) {
-				canvasHeightOringin = viewport.height * 0.352778; // point => mm
-				canvasWidthOringin = viewport.width * 0.352778;
-				cont++;
-			}
-			console.log('canvasHeightOringin: ', canvasHeightOringin);
-			var renderContext = {
-				canvasContext: context,
-				viewport: viewport
-			};
-			page.render(renderContext);
+    // Fetch the page
+    __PDF_DOC.getPage(page_no).then(function (page) {
+      // As the canvas is of a fixed width we need to set the scale of the viewport accordingly
+      var scale_required = __CANVAS.width / page.getViewport(1).width;
 
-			init();
-    }
+      // Get viewport of the page at required scale
+      var viewport = page.getViewport(scale_required);
 
-    function displayPage(pdf, num) {
-      pdf.getPage(num).then(function getPage(page) { renderPage(page); });
-    }
+      // Set canvas height
+      __CANVAS.height = viewport.height;
 
-		function saveArrayDataImage(currencyPageNum, canvasDrawn) {
-			//arrayImageData.forEach((element, index ) => {
-				//if(arrayImageData[index].numPage === currencyPageNum) {
-					arrayImageData[index].dataImage = canvasDrawn;
-					//break;
-				//}
-			//});
-		}
+      var renderContext = {
+        canvasContext: __CANVAS_CTX,
+        viewport: viewport
+      };
 
-    var nextbutton = document.getElementById("nextbutton");
-    nextbutton.onclick = function () {
-			console.log('URL: ', URL.createObjectURL($("#file-to-upload").get(0).files[0]));
-			console.log('pageNum: ', pageNum);
-			//console.log('drawCanvas: ', drawCanvas.toDataURL("image/jpeg", 1.0));
-			//saveArrayDataImage(pageNum, drawCanvas.toDataURL("image/jpeg", 1.0));
-			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			if (pageNum >= shownPdf.numPages) {
-				return;
-			}
-			//console.log('arrayImageData[pageNum].dataImage: ', arrayImageData[pageNum - 1]);
-			
-			var img = new Image();
-			img.onload = function () {
-				//canvas.width = img.width;
-				//canvas.height = img.height;
-				//ctx.drawImage(img, 0, 0);
-			ctx.drawImage(img, 0, 0);
-			};
-			//arrayImageData[pageNum - 1].dataImage;
-			// drawContext.drawImage(arrayImageData[pageNum - 1].dataImage, widthCanvas, heightCanvas);
-			
-			pageNum++;
-			displayPage(shownPdf, pageNum);
-			console.log('src: ', arrayImageData[pageNum - 1].dataImage);
-			img.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);//arrayImageData[pageNum - 1].dataImage;
-			document.getElementById("the-canvas").src = img.src;
-			//drawContext.drawImage(arrayImageData[pageNum - 1].dataImage, 0, 0);
-    }
+      // Render the page contents in the canvas
+      page.render(renderContext).then(function () {
+        __PAGE_RENDERING_IN_PROGRESS = 0;
 
-    var prevbutton = document.getElementById("prevbutton");
-    prevbutton.onclick = function () {
-			console.log('pageNum: ', pageNum);
-			//console.log('drawCanvas: ', drawCanvas.toDataURL("image/jpeg", 1.0));// string
-			//saveArrayDataImage(pageNum, drawCanvas.toDataURL("image/jpeg", 1.0));
-			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			if (pageNum <= 1) {
-				return;
-			}
-			//console.log('arrayImageData[pageNum].dataImage: ', arrayImageData[pageNum - 1].dataImage);
-			
-			var img = new Image();
-			img.onload = function () {
-				//img.width = canvas.width;
-				//img.height = canvas.height;
-				ctx.drawImage(img, 0, 0);
-				//drawContext.drawImage(img, 0, 0);
-				//console.log(myCanvas.toDataURL('image/jpeg'));
-			};
-			console.log('numPage: ', arrayImageData[pageNum - 1].numPage);
-			//img.src = URL.createObjectURL(arrayImageData[pageNum - 1].dataImage);
-			//img.src = URL.createObjectURL(inputPicture);
-			//drawContext.drawImage(arrayImageData[pageNum - 1].dataImage, widthCanvas, heightCanvas);
+        // Re-enable Prev & Next buttons
+        $("#pdf-next, #pdf-prev").removeAttr('disabled');
 
-			pageNum--;
-			console.log('pageNum: ',pageNum);
-			displayPage(shownPdf, pageNum);
-			img.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);//arrayImageData[pageNum - 1].dataImage; 
-			//drawContext.drawImage(img, 0, 0);
-			document.getElementById("the-canvas").src = img.src;//arrayImageData[pageNum - 1].dataImage;
-			//drawContext.drawImage(arrayImageData[pageNum - 1].dataImage, 0, 0);
-    }
-
-    var zoominbutton = document.getElementById("zoominbutton");
-    zoominbutton.onclick = function () {
-			pdfScale = pdfScale + 0.25;
-			displayPage(shownPdf, pageNum);
-    }
-
-    var zoomoutbutton = document.getElementById("zoomoutbutton");
-    zoomoutbutton.onclick = function () {
-			if (pdfScale <= 0.25) {
-				return;
-			}
-			pdfScale = pdfScale - 0.25;
-			displayPage(shownPdf, pageNum);
-    }
-    // Upon click this should should trigger click on the #file-to-upload file input element
-    // This is better than showing the not-good-looking file input element
-    $("#upload-button").on('click', function () {
-        $("#file-to-upload").trigger('click');
+        // Show the canvas and hide the page loader
+        $("#pdf-canvas").show();
+        $("#page-loader").hide();
+      });
     });
+  }
 
-    // When user chooses a PDF file
-    $("#file-to-upload").on('change', function () {
-        // Validate whether PDF
-        if (['application/pdf'].indexOf($("#file-to-upload").get(0).files[0].type) == -1) {
-            alert('Error : Not a PDF');
-          return;
-        }
-				arrayImageData = [];
-				pageNum = 1;
-        //$("#upload-button").hide();
-				console.log('shownPdf: ', shownPdf);
-        // Send the object url of the pdf
-        showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
-    });
 
-    // Previous page of the PDF
-    $("#pdf-prev").on('click', function () {
-        if (__CURRENT_PAGE != 1)
-          showPage(--__CURRENT_PAGE);
-    });
+  // Upon click this should should trigger click on the #file-to-upload file input element
+  // This is better than showing the not-good-looking file input element
+  $("#upload-button").on('click', function () {
+    $("#file-to-upload").trigger('click');
+  });
 
-    // Next page of the PDF
-    $("#pdf-next").on('click', function () {
-        if (__CURRENT_PAGE != __TOTAL_PAGES)
-          showPage(++__CURRENT_PAGE);
-    });
-
-    /////////////////// save  - dont work ///////////////////////////
-    var doc = new jsPDF();
-    var specialElementHandlers = {
-        '#editor': function (element, renderer) {
-            return true;
-        }
-    };
-    console.log('doc: ', doc);
-    $('#cmd').click(async function () {
-			/*doc.fromHTML($('#the-canvas').html(), widthCanvas, heightCanvas, {
-					'width': widthCanvas,
-					'elementHandlers': specialElementHandlers
-			});
-			doc.save('sample-file.pdf');*/
-			//drawCanvas.scale 
-			
-			console.log('pageNum: ', pageNum);
-			/* arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			for (let x = pageNum + 1; x <= __TOTAL_PAGES; x++) {
-				console.log('x: ', x);
-				displayPage(shownPdf, x);
-				arrayImageData[x - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			} */
-			
-			//await loadPaGe().then(console.log('hola'));
-			var pdf = new jsPDF('p', 'mm', [canvasWidthOringin , canvasHeightOringin]);
-			console.log('__TOTAL_PAGES: ', __TOTAL_PAGES + ' arrayImageData: ', arrayImageData.length);
-			for (let x=0;x<__TOTAL_PAGES;x++){
-				console.log('save');
-				const imgData = arrayImageData[x].dataImage;
-				pdf.setPage(x+1);//declare that we're working on that page
-				//await pdf.addPage();// adds a new page to the pdf preview
-				console.log('imgData', imgData);
-				pdf.addImage(imgData, 'jpeg', 0, 0, canvasWidthOringin , canvasHeightOringin);
-				(__TOTAL_PAGES - 1 !== x ) ? pdf.addPage(): '';
-			}
-			await pdf.save("download.pdf"); 
-    });
-
-		async function loadPaGe(){
-			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			for (let x = pageNum; x <= __TOTAL_PAGES; x++) {
-				console.log('x: ', x);
-				displayPage(shownPdf, x);
-				arrayImageData[x - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			}
-		}
-
-		function loadPaGeInit(){
-			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			for (let x = pageNum; x <= __TOTAL_PAGES; x++) {
-				console.log('x: ', x);
-				displayPage(shownPdf, x);
-				arrayImageData[x - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			}
-		}
-
-    ////////////////////////////////////////
-
-    /////// draw canvas  ///////////////////
-    var canvas, ctx, flag = false,
-        prevX = 0,
-        currX = 0,
-        prevY = 0,
-        currY = 0,
-        dot_flag = false;
-
-    var x = "black",
-        y = 2;
-
-    function init() {
-			canvas = drawCanvas; //document.getElementById('the-canvas');
-			ctx = drawContext; //canvas.getContext("2d");
-			w = widthCanvas;
-			h = heightCanvas;
-
-			canvas.addEventListener("mousemove", function (e) {
-					findxy('move', e)
-			}, false);
-			canvas.addEventListener("mousedown", function (e) {
-					findxy('down', e)
-			}, false);
-			canvas.addEventListener("mouseup", function (e) {
-					findxy('up', e)
-			}, false);
-			canvas.addEventListener("mouseout", function (e) {
-					findxy('out', e)
-			}, false);
+  // When user chooses a PDF file
+  $("#file-to-upload").on('change', function () {
+    // Validate whether PDF
+    if (['application/pdf'].indexOf($("#file-to-upload").get(0).files[0].type) == -1) {
+      alert('Error : Not a PDF');
+      return;
     }
 
-    function color(obj) {
-			switch (obj.id) {
-				case "green":
-						x = "green";
-						break;
-				case "blue":
-						x = "blue";
-						break;
-				case "red":
-						x = "red";
-						break;
-				case "yellow":
-						x = "yellow";
-						break;
-				case "orange":
-						x = "orange";
-						break;
-				case "black":
-						x = "black";
-						break;
-				case "white":
-						x = "white";
-						break;
-			}
-			if (x == "white") y = 14;
-			else y = 2;
-    }
-		
-    function findxy(res, e) {
-			if (res == 'down') {
-				prevX = currX;
-				prevY = currY;
-				currX = e.clientX - canvas.offsetLeft;
-				currY = e.clientY - canvas.offsetTop;
+    //$("#upload-button").hide();
 
-				flag = true;
-				dot_flag = true;
-				if (dot_flag) {
-					ctx.beginPath();
-					ctx.fillStyle = x;
-					ctx.fillRect(currX, currY, 2, 2);
-					ctx.closePath();
-					dot_flag = false;
-				}
-			}
-			if (res == 'up' || res == "out") {
-				flag = false;
-			}
-			if (res == 'move') {
-				if (flag) {
-					prevX = currX;
-					prevY = currY;
-					currX = e.clientX - canvas.offsetLeft;
-					currY = e.clientY - canvas.offsetTop;
-					draw();
-				}
-			}
-    }
+    // Send the object url of the pdf
+    showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
+  });
 
-    function draw() {
-			ctx.beginPath();
-			ctx.moveTo(prevX, prevY);
-			ctx.lineTo(currX, currY);
-			ctx.strokeStyle = x;
-			ctx.lineWidth = y;
-			ctx.stroke();
-			ctx.closePath();
-    }
+  // Previous page of the PDF
+  $("#pdf-prev").on('click', function () {
+    if (__CURRENT_PAGE != 1)
+      showPage(--__CURRENT_PAGE);
+  });
 
-    function erase() {
-			var m = confirm("Want to clear");
-			if (m) {
-				ctx.clearRect(0, 0, w, h);
-				document.getElementById("canvasimg").style.display = "none";
-			}
-    }
+  // Next page of the PDF
+  $("#pdf-next").on('click', function () {
+    if (__CURRENT_PAGE != __TOTAL_PAGES)
+      showPage(++__CURRENT_PAGE);
+  });
 
-    function save() {
-			document.getElementById("canvasimg").style.border = "2px solid";
-			var dataURL = canvas.toDataURL();
-			document.getElementById("canvasimg").src = dataURL;
-			document.getElementById("canvasimg").style.display = "inline";
-    }
 
-    //////////////////////////////////////////////
 </script>
