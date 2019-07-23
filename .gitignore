@@ -4,22 +4,7 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # User-specific directories
-RM/DataAdapters/*.dll
-RM/DataAdapters/*.json
-**/WebApplication/wwwroot/dist/*.*
-**/WebApplication/wwwroot/dist/main.js
-**/WebApplication/wwwroot/dist/*
-**/WebApplication/web.config
-**/wwwroot/
 **/.vscode
-**/DataAccess/DataAdapters/DBAdapter/Migrations
-**/DataAccess/DataSourceAdapters/DBAdapter
-**/WebAPI/DataAdapters/*.dll
-**/WebAPI/DataAdapters/*.json
-**/WebAPI/web.config
-**/WebAPI/Data/workingCalendar.json
-**/WebAPI/DataAdapters/InternalAdapter/*.json
-**/WebApplication/test/coverage
 
 .DS_Store
 node_modules/
@@ -311,3 +296,7 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+
+# Bootstrap
+ProjectoPDF/packages.config
+
