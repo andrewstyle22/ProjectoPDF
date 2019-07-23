@@ -65,6 +65,7 @@
 		var arrayImageData = [];
 
     var pagesSeen = 0;
+		//var imagen = new Image();
 
     async function showPDF(pdf_url) {
 			$("#pdf-loader").show();
@@ -139,7 +140,7 @@
 		}
 
     var nextbutton = document.getElementById("nextbutton");
-    nextbutton.onclick = function () {
+    nextbutton.onclick = async function () {
 			//console.log('URL: ', URL.createObjectURL($("#file-to-upload").get(0).files[0])); //blob:http://localhost:57637/34c44839-91f8-405a-8a4b-5943668077fc
 			console.log('pageNum: ', pageNum);
 			//console.log('drawCanvas: ', drawCanvas.toDataURL("image/jpeg", 1.0));
@@ -151,33 +152,62 @@
 			}
 			//console.log('arrayImageData[pageNum].dataImage: ', arrayImageData[pageNum - 1]);
 			
-			var img = new Image();
-			img.onload = function () {
-				//canvas.width = img.width;
-				//canvas.height = img.height;
+			imagen = new Image();
+			pageNum++;
+			imagen = await loadImage();
+			/*imagen.onload = async function () {
+				canvas = document.getElementById('the-canvas');
+				drawContext = canvas.getContext('2d');
+				canvas.width = imagen.width;
+				canvas.height = imagen.height;
 				//ctx.drawImage(img, 0, 0);
-			  drawContext.drawImage(img, 0, 0);
-			};
+			  await __CANVAS_CTX.drawImage(imagen, 0, 0);
+				__CANVAS_CTX.restore();
+			};*/
 			//arrayImageData[pageNum - 1].dataImage;
 			// drawContext.drawImage(arrayImageData[pageNum - 1].dataImage, widthCanvas, heightCanvas);
 			
-			pageNum++;
+			//pageNum++;
       pagesSeen = pageNum;
-			displayPage(shownPdf, pageNum);
-			// console.log('src: ', arrayImageData[pageNum - 1].dataImage);
-			// img.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);//arrayImageData[pageNum - 1].dataImage;
-          console.log('length ', arrayImageData[pageNum - 1].dataImage.length);
-      if (  arrayImageData[pageNum - 1].dataImage.length > 0 ) {
-        img.src = arrayImageData[pageNum - 1].dataImage;
-      } else {
-        img.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);
+			if (arrayImageData[pageNum - 1].dataImage.length === 0) {
+				displayPage(shownPdf, pageNum);
       }
-			document.getElementById("the-canvas").src = img.src;
-			// drawContext.drawImage(img, 0, 0);
+			// console.log('src: ', arrayImageData[pageNum - 1].dataImage);
+			// imagen.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);//arrayImageData[pageNum - 1].dataImage;
+          console.log('length ', arrayImageData[pageNum - 1].dataImage.length);
+      /*if (  arrayImageData[pageNum - 1].dataImage.length > 0 ) {
+        imagen.src = arrayImageData[pageNum - 1].dataImage;
+      } else {
+        imagen.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);
+      }*/
+			document.getElementById("the-canvas").src = imagen.src;
     }
 
+		async function loadImage() {
+			if (arrayImageData[pageNum - 1].dataImage.length > 0) {
+        imagen.src = arrayImageData[pageNum - 1].dataImage;
+      } else {
+        imagen.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);
+      }
+			imagen.onload = async function () {
+				canvas = document.getElementById('the-canvas');
+				drawContext = canvas.getContext('2d');
+				console.log('imagen.width: ', imagen.width);
+				console.log('canvas.width: ', canvas.width);
+				canvas.width = imagen.width;
+				canvas.height = imagen.height;
+				//ctx.drawImage(img, 0, 0);
+				drawContext.scale(1, 1);
+				drawContext.save();
+			  drawContext.drawImage(imagen, 0, 0);
+				//drawContext.restore();
+			};
+
+			return imagen;
+		}
+
     var prevbutton = document.getElementById("prevbutton");
-    prevbutton.onclick = function () {
+    prevbutton.onclick = async function () {
 			console.log('pageNum: ', pageNum);
 			//console.log('drawCanvas: ', drawCanvas.toDataURL("image/jpeg", 1.0));// string
 			//saveArrayDataImage(pageNum, drawCanvas.toDataURL("image/jpeg", 1.0));
@@ -187,28 +217,30 @@
 			}
 			//console.log('arrayImageData[pageNum].dataImage: ', arrayImageData[pageNum - 1].dataImage);
 			
-			var img = new Image();
-			img.onload = function () {
-				//canvas.width = img.width;
-				//canvas.height = img.height;
-				drawContext.drawImage(img, 0, 0);
-				//drawContext.drawImage(img, 0, 0);
-				//console.log(myCanvas.toDataURL('image/jpeg'));
-			};
-			// console.log('numPage: ', arrayImageData[pageNum - 1].numPage);
-			//img.src = URL.createObjectURL(arrayImageData[pageNum - 1].dataImage);
-			//img.src = URL.createObjectURL(inputPicture);
+			imagen = new Image();
+			pageNum--;
+			imagen = await loadImage();
+			/*imagen.onload = async function () {
+				canvas = document.getElementById('the-canvas');
+				drawContext = canvas.getContext('2d');
+				canvas.width = imagen.width;
+				canvas.height = imagen.height;
+				await __CANVAS_CTX.drawImage(imagen, 0, 0);
+				__CANVAS_CTX.restore();
+			};*/
+			//console.log('numPage: ', arrayImageData[pageNum - 1].numPage);
+			//imagen.src = URL.createObjectURL(arrayImageData[pageNum - 1].dataImage);
+			//imagen.src = URL.createObjectURL(inputPicture);
 			//drawContext.drawImage(arrayImageData[pageNum - 1].dataImage, widthCanvas, heightCanvas);
 
-			pageNum--;
+			//pageNum--;
 			console.log('pageNum: ',pageNum);
-			displayPage(shownPdf, pageNum);
-		//	img.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);asi siempre carga bien el pdf     //arrayImageData[pageNum - 1].dataImage; 
-      img.src = arrayImageData[pageNum - 1].dataImage;
+			// displayPage(shownPdf, pageNum);
+		  //imagen.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);asi siempre carga bien el pdf     //arrayImageData[pageNum - 1].dataImage; 
+      //imagen.src = arrayImageData[pageNum - 1].dataImage;
 			//drawContext.drawImage(img, 0, 0);
-			document.getElementById("the-canvas").src = img.src;//arrayImageData[pageNum - 1].dataImage;
+			document.getElementById("the-canvas").src = imagen.src;//arrayImageData[pageNum - 1].dataImage;
       //document.getElementById("the-canvas").src = arrayImageData[pageNum - 1].dataImage;
-			// drawContext.drawImage(img, 0, 0);
     }
 
     var zoominbutton = document.getElementById("zoominbutton");
@@ -234,16 +266,16 @@
     // When user chooses a PDF file
     $("#file-to-upload").on('change', function () {
       // Validate whether PDF
+      //erase();
       if($("#file-to-upload").get(0).files[0] !== undefined) {
         if (['application/pdf'].indexOf($("#file-to-upload").get(0).files[0].type) == -1) {
           alert('Error : Not a PDF');
           return;
         }
-        erase();
         loadData();
-        //arrayImageData = [];
+
         //$("#upload-button").hide();
-        console.log('shownPdf: ', shownPdf);
+        //console.log('shownPdf: ', shownPdf);
         
         $("#cmd").css('visibility', 'hidden');
         // Send the object url of the pdf
@@ -268,7 +300,7 @@
       shownPdf; // another global we'll use for the buttons
       url = '' // PDF to load: change this to a file that exists;
 
-      var __PDF_DOC,
+       __PDF_DOC,
       __CURRENT_PAGE,
       __TOTAL_PAGES,
       __PAGE_RENDERING_IN_PROGRESS = 0,
@@ -290,6 +322,8 @@
 		  arrayImageData = [];
 
       pagesSeen = 0;
+
+			imagen = new Image();
     }
 
     function showPage(page_no) {
@@ -345,13 +379,6 @@
     };
     //console.log('doc: ', doc);
     $('#cmd').click(async function () {
-			/*doc.fromHTML($('#the-canvas').html(), widthCanvas, heightCanvas, {
-					'width': widthCanvas,
-					'elementHandlers': specialElementHandlers
-			});
-			doc.save('sample-file.pdf');*/
-			//drawCanvas.scale 
-			
 			console.log('pageNum: ', pageNum);
 			/* arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 			for (let x = pageNum + 1; x <= __TOTAL_PAGES; x++) {
@@ -370,7 +397,6 @@
 				console.log('X');
 				const imgData = arrayImageData[x].dataImage;
 				pdf.setPage(x+1);//declare that we're working on that page
-				//await pdf.addPage();// adds a new page to the pdf preview
 				//console.log('imgData', imgData);
 				pdf.addImage(imgData, 'jpeg', 0, 0, canvasWidthOringin , canvasHeightOringin);
 				(pagesSeen - 1 !== x ) ? pdf.addPage(): '';
@@ -396,9 +422,9 @@
 			}
 		}
 
-    ////////////////////////////////////////
+    ////////////////////////////////////////////////////
 
-    /////// draw canvas  ///////////////////
+    /////////////////// draw canvas  ///////////////////
     var canvas, ctx, flag = false,
         prevX = 0,
         currX = 0,
@@ -504,17 +530,20 @@
 			//var m = confirm("Want to clear");
 			//if (m) {
 				contextErase.clearRect(0, 0, canvasErase.width, canvasErase.height);
-        document.getElementById('the-canvas').val8ue = "";
+        document.getElementById('the-canvas').value = "";
+				$('#file-to-upload').val('');
+				
 				//document.getElementById("canvasimg").style.display = "none";
 			//}
     }
 
+		/*
     function save() {
 			document.getElementById("canvasimg").style.border = "2px solid";
 			var dataURL = canvas.toDataURL();
 			document.getElementById("canvasimg").src = dataURL;
 			document.getElementById("canvasimg").style.display = "inline";
     }
-
+		*/
     //////////////////////////////////////////////
 </script>
