@@ -8,8 +8,8 @@
 <div id="controlpdf" style="text-align: center">
 	<button id="prevbutton" type="button">prev page</button>
 	<button id="nextbutton" type="button">next page</button>
-	<button id="zoominbutton" type="button">zoom in</button>
-	<button id="zoomoutbutton" type="button">zoom out</button>
+	<!--<button id="zoominbutton" type="button">zoom in</button>
+	<button id="zoomoutbutton" type="button">zoom out</button>-->
 	<button id="cmd" style="visibility: hidden;">generate PDF</button>
 </div>
 <div style="text-align: center;margin-top: 17px;margin-bottom: 10px;font-weight: bolder;">Choose Color</div>
@@ -101,7 +101,7 @@
 			});
     }
 
-    function renderPage(page) {
+    async function renderPage(page) {
 			var scale = pdfScale; // render with global pdfScale variable
 			var viewport = page.getViewport(scale); // width and height are in points no pixels
 			var canvas = document.getElementById('the-canvas');
@@ -127,121 +127,57 @@
     }
 
     async function displayPage(pdf, num) {
-      pdf.getPage(num).then(function getPage(page) { renderPage(page); });
+      pdf.getPage(num).then(async function getPage(page) { await renderPage(page); });
     }
-
-		function saveArrayDataImage(currencyPageNum, canvasDrawn) {
-			//arrayImageData.forEach((element, index ) => {
-				//if(arrayImageData[index].numPage === currencyPageNum) {
-					arrayImageData[index].dataImage = canvasDrawn;
-					//break;
-				//}
-			//});
-		}
 
     var nextbutton = document.getElementById("nextbutton");
     nextbutton.onclick = async function () {
 			//console.log('URL: ', URL.createObjectURL($("#file-to-upload").get(0).files[0])); //blob:http://localhost:57637/34c44839-91f8-405a-8a4b-5943668077fc
 			console.log('pageNum: ', pageNum);
-			//console.log('drawCanvas: ', drawCanvas.toDataURL("image/jpeg", 1.0));
-			//console.log('canvas: ', canvas.toDataURL("image/jpeg", 1.0));
-			//saveArrayDataImage(pageNum, drawCanvas.toDataURL("image/jpeg", 1.0));
-			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 			if (pageNum >= shownPdf.numPages) {
 				return;
 			}
-			//console.log('arrayImageData[pageNum].dataImage: ', arrayImageData[pageNum - 1]);
-			
-			imagen = new Image();
+			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 			pageNum++;
-			imagen = await loadImage();
-			/*imagen.onload = async function () {
-				canvas = document.getElementById('the-canvas');
-				drawContext = canvas.getContext('2d');
-				canvas.width = imagen.width;
-				canvas.height = imagen.height;
-				//ctx.drawImage(img, 0, 0);
-			  await __CANVAS_CTX.drawImage(imagen, 0, 0);
-				__CANVAS_CTX.restore();
-			};*/
-			//arrayImageData[pageNum - 1].dataImage;
-			// drawContext.drawImage(arrayImageData[pageNum - 1].dataImage, widthCanvas, heightCanvas);
-			
-			//pageNum++;
       pagesSeen = pageNum;
 			if (arrayImageData[pageNum - 1].dataImage.length === 0) {
 				await displayPage(shownPdf, pageNum);
       } else {
-				document.getElementById("the-canvas").src = imagen.src;
+				document.getElementById("the-canvas").src = await loadImage();
 			}
-			// console.log('src: ', arrayImageData[pageNum - 1].dataImage);
-			// imagen.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);//arrayImageData[pageNum - 1].dataImage;
       console.log('length ', arrayImageData[pageNum - 1].dataImage.length);
-      /*if (  arrayImageData[pageNum - 1].dataImage.length > 0 ) {
-        imagen.src = arrayImageData[pageNum - 1].dataImage;
-      } else {
-        imagen.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);
-      }*/
     }
 
 		async function loadImage() {
+			var imagen = new Image();
 			if (arrayImageData[pageNum - 1].dataImage.length > 0) {
         imagen.src = arrayImageData[pageNum - 1].dataImage;
       } else {
         imagen.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);
       }
-			imagen.onload = async function () {
+			imagen.onload = function () {
 				canvas = document.getElementById('the-canvas');
 				drawContext = canvas.getContext('2d');
 				canvas.width = imagen.width;
 				canvas.height = imagen.height;
-				//ctx.drawImage(img, 0, 0);
 				drawContext.scale(1, 1);
 				drawContext.save();
 			  drawContext.drawImage(imagen, 0, 0);
-				//drawContext.restore();
 			};
-
-			return imagen;
+			return imagen.src;
 		}
 
     var prevbutton = document.getElementById("prevbutton");
     prevbutton.onclick = async function () {
-			console.log('pageNum: ', pageNum);
-			//console.log('drawCanvas: ', drawCanvas.toDataURL("image/jpeg", 1.0));// string
-			//saveArrayDataImage(pageNum, drawCanvas.toDataURL("image/jpeg", 1.0));
 			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 			if (pageNum <= 1) {
 				return;
 			}
-			//console.log('arrayImageData[pageNum].dataImage: ', arrayImageData[pageNum - 1].dataImage);
-			
-			imagen = new Image();
 			pageNum--;
-			imagen = await loadImage();
-			/*imagen.onload = async function () {
-				canvas = document.getElementById('the-canvas');
-				drawContext = canvas.getContext('2d');
-				canvas.width = imagen.width;
-				canvas.height = imagen.height;
-				await __CANVAS_CTX.drawImage(imagen, 0, 0);
-				__CANVAS_CTX.restore();
-			};*/
-			//console.log('numPage: ', arrayImageData[pageNum - 1].numPage);
-			//imagen.src = URL.createObjectURL(arrayImageData[pageNum - 1].dataImage);
-			//imagen.src = URL.createObjectURL(inputPicture);
-			//drawContext.drawImage(arrayImageData[pageNum - 1].dataImage, widthCanvas, heightCanvas);
-
-			//pageNum--;
 			console.log('pageNum: ',pageNum);
-			// displayPage(shownPdf, pageNum);
-		  //imagen.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);asi siempre carga bien el pdf     //arrayImageData[pageNum - 1].dataImage; 
-      //imagen.src = arrayImageData[pageNum - 1].dataImage;
-			//drawContext.drawImage(img, 0, 0);
-			document.getElementById("the-canvas").src = imagen.src;//arrayImageData[pageNum - 1].dataImage;
-      //document.getElementById("the-canvas").src = arrayImageData[pageNum - 1].dataImage;
+			document.getElementById("the-canvas").src = await loadImage();
     }
-
+		/*
     var zoominbutton = document.getElementById("zoominbutton");
     zoominbutton.onclick = async function () {
 			pdfScale = pdfScale + 0.25;
@@ -256,6 +192,7 @@
 			pdfScale = pdfScale - 0.25;
 			await displayPage(shownPdf, pageNum);
     }
+		*/
     // Upon click this should should trigger click on the #file-to-upload file input element
     // This is better than showing the not-good-looking file input element
     $("#upload-button").on('click', function () {
@@ -263,7 +200,7 @@
     });
 
     // When user chooses a PDF file
-    $("#file-to-upload").on('change', function () {
+    $("#file-to-upload").on('change', async function () {
       // Validate whether PDF
       //erase();
       if($("#file-to-upload").get(0).files[0] !== undefined) {
@@ -271,7 +208,7 @@
           alert('Error : Not a PDF');
           return;
         }
-        loadData();
+        await loadData();
 
         //$("#upload-button").hide();
         //console.log('shownPdf: ', shownPdf);
@@ -282,6 +219,7 @@
       }
     });
 
+		/*
     // Previous page of the PDF
     $("#pdf-prev").on('click', function () {
       if (__CURRENT_PAGE != 1)
@@ -293,8 +231,8 @@
       if (__CURRENT_PAGE != __TOTAL_PAGES)
         showPage(++__CURRENT_PAGE);
     });
-
-    function loadData() {
+		*/
+    async function loadData() {
       pdfScale = 1; // make pdfScale a global variable
       shownPdf; // another global we'll use for the buttons
       url = '' // PDF to load: change this to a file that exists;
@@ -321,10 +259,8 @@
 		  arrayImageData = [];
 
       pagesSeen = 0;
-
-			imagen = new Image();
     }
-
+		/*
     function showPage(page_no) {
       __PAGE_RENDERING_IN_PROGRESS = 1;
       __CURRENT_PAGE = page_no;
@@ -368,24 +304,11 @@
         });
       });
     }
+		*/
+    /////////////////// save PDF ///////////////////
 
-    /////////////////// save - dont work ///////////////////
-    var doc = new jsPDF();
-    var specialElementHandlers = {
-      '#editor': function (element, renderer) {
-          return true;
-      }
-    };
-    //console.log('doc: ', doc);
     $('#cmd').click(async function () {
 			console.log('pageNum: ', pageNum);
-			/* arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			for (let x = pageNum + 1; x <= __TOTAL_PAGES; x++) {
-				console.log('x: ', x);
-				displayPage(shownPdf, x);
-				arrayImageData[x - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			} */
-			
       arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
       // no carga el array correctamente
 			if(pagesSeen < __TOTAL_PAGES) {
@@ -410,7 +333,10 @@
 				console.log('x: ', x);
 				pageNum = x;
 				await displayPage(shownPdf, pageNum);
-				await saveArray(x)
+				debugger;
+				//await saveArray(x);
+				arrayImageData[x - 1].dataImage = drawCanvas.toDataURL("image/jpeg", 1.0);
+				debugger;
 				/*if (arrayImageData[x - 1].dataImage.length === 0) {
 					console.log('x: ', x + '  url: ', canvas.toDataURL("image/jpeg", 1.0));
 					arrayImageData[x - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);//URL.createObjectURL($("#file-to-upload").get(0).files[0]);//
@@ -424,8 +350,9 @@
 		async function saveArray(x){
 		  if (arrayImageData[x - 1].dataImage.length === 0) {
 				console.log('x: ', x + '  url: ', canvas.toDataURL("image/jpeg", 1.0));
-				document.getElementById("the-canvas").src = await saveImageNoShowed();
+				document.getElementById("the-canvas").src = await loadImage();//await saveImageNoShowed();
 				var canvasNew = document.getElementById('the-canvas');
+				console.log('canvasNew ', canvasNew.toDataURL("image/jpeg", 1.0));
 				arrayImageData[x - 1].dataImage = canvasNew.toDataURL("image/jpeg", 1.0);//URL.createObjectURL($("#file-to-upload").get(0).files[0]);//
 			}
 		}
@@ -444,16 +371,6 @@
 			};
 			return imagenSave.src;
 		}
-		/*
-		async function loadPageInit(){
-			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			for (let x = pageNum; x <= __TOTAL_PAGES; x++) {
-				console.log('x: ', x);
-				await displayPage(shownPdf, x);
-				arrayImageData[x - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			}
-		}
-		*/
     ////////////////////////////////////////////////////
 
     /////////////////// draw canvas  ///////////////////
