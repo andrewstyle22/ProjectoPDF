@@ -245,7 +245,7 @@
 				pageNum++;
 			  await loadPage();
 				pagesSeen = __TOTAL_PAGES;
-				$("#pdf-current-page").text(pagesSeen);
+			
       } else {
 				arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 			}
@@ -259,11 +259,15 @@
 			await pdf.save("download.pdf"); 
     });
 
+		function timeout(ms) {
+				return new Promise(resolve => setTimeout(resolve, ms));
+		}
 		async function loadPage(){
 			await displayPage(shownPdf, pageNum);
 			var addArrayImage = false;
 			for (let x = pageNum; x <= __TOTAL_PAGES + 1; x++) {
 				pageNum = x;
+				await timeout(1000);
 				await PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfHelloWorld(shownPdf) {
 					await displayPage(shownPdf, pageNum);
 					if(addArrayImage) {
