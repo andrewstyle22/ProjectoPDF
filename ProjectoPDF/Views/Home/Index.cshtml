@@ -245,6 +245,7 @@
 				pageNum++;
 			  await loadPage();
 				pagesSeen = __TOTAL_PAGES;
+				$("#pdf-current-page").text(pagesSeen);
       } else {
 				arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 			}
