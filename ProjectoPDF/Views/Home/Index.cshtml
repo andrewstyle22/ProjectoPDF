@@ -2,15 +2,20 @@
     ViewBag.Title = "Home Page";
 }
 
-<!--https://stackoverflow.com/questions/27607526/zoom-on-simple-pdf-js-viewer-->
 <button id="upload-button">Select PDF</button>
 <input type="file" id="file-to-upload" accept="application/pdf" />
-<div id="controlpdf" style="text-align: center">
+<div id="controlpdf" style="text-align: center;visibility: hidden;">
 	<button id="prevbutton" type="button">prev page</button>
 	<button id="nextbutton" type="button">next page</button>
 	<!--<button id="zoominbutton" type="button">zoom in</button>
 	<button id="zoomoutbutton" type="button">zoom out</button>-->
-	<button id="cmd" style="visibility: hidden;">generate PDF</button>
+	<button id="cmd">generate PDF</button>
+</div>
+<div style="text-align: center;visibility: hidden;margin-top:10px;" id="page-count-container">
+	Page 
+	<div id="pdf-current-page"></div> 
+	of 
+	<div id="pdf-total-pages"></div>
 </div>
 <div style="text-align: center;margin-top: 17px;margin-bottom: 10px;font-weight: bolder;">Choose Color</div>
 <div style="text-align: center">
@@ -21,7 +26,6 @@
 	<button type="button" style="background:orange;" id="orange" onclick="color(this)">orange</button>
 	<button type="button" style="background:black;color:white" id="black" onclick="color(this)">black</button>
 	<button type="button" style="background:white;" id="white" onclick="color(this)">white</button>
-	<!--<button type="button">Eraser</button>-->
 
 	<!--<button type="button" value="save" id="btn" size="30" onclick="save()">Save</button>-->
 	<button type="button" value="clear" id="clr" size="23" onclick="erase()">Clear</button>
@@ -34,11 +38,6 @@
 <div id="annotation-layer"></div>
 <div id="editor"></div>
 <script id="script">
-    /*var myState = {
-			pdf: null,
-			currentPage: 1,
-			zoom: 1
-    }*/
     var pageNum = 1;
     var pdfScale = 1; // make pdfScale a global variable
     var shownPdf; // another global we'll use for the buttons
@@ -65,12 +64,9 @@
 		var arrayImageData = [];
 
     var pagesSeen = 0;
-		//var imagen = new Image();
 
     async function showPDF(pdf_url) {
-			$("#pdf-loader").show();
 			pdfDoc = PDFJS.getDocument(pdf_url).then(async function getPdfHelloWorld(pdf) {
-				console.log('pdf: ', pdf);
 				await displayPage(pdf, 1);
 				shownPdf = pdf;
 			});
@@ -79,24 +75,19 @@
 				__TOTAL_PAGES = __PDF_DOC.numPages;
 				// myState.pdf = pdf_doc;
 				// Hide the pdf loader and show pdf container in HTML
-				$("#pdf-loader").hide();
-				$("#pdf-contents").show();
 				$("#pdf-total-pages").text(__TOTAL_PAGES);
+				
+    		$("#pdf-current-page").text('1');
 
 				for(var x = 1;x <= __TOTAL_PAGES; x++) {
 					var data = { numPage: x, dataImage: ''};
 					arrayImageData.push(data);
 				}
 				//await loadPageInit(); no carga bien las primeras páginas
-				//console.log('pdfDoc: ', pdfDoc);
-				//console.log('arrayImageData: ', arrayImageData);
 				// Show the first page
 				//showPage(1);
 			}).catch(function (error) {
 				// If error re-show the upload button
-				$("#pdf-loader").hide();
-				$("#upload-button").show();
-
 				alert('catch ', error.message);
 			});
     }
@@ -122,7 +113,8 @@
 				viewport: viewport
 			};
 			page.render(renderContext);
-      $("#cmd").css('visibility', 'visible');
+      $("#controlpdf, #page-count-container").css('visibility', 'visible');
+			
 			init();
     }
 
@@ -132,20 +124,18 @@
 
     var nextbutton = document.getElementById("nextbutton");
     nextbutton.onclick = async function () {
-			//console.log('URL: ', URL.createObjectURL($("#file-to-upload").get(0).files[0])); //blob:http://localhost:57637/34c44839-91f8-405a-8a4b-5943668077fc
-			console.log('pageNum: ', pageNum);
 			if (pageNum >= shownPdf.numPages) {
 				return;
 			}
 			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 			pageNum++;
+			$("#pdf-current-page").text(pageNum);
       pagesSeen = pageNum;
 			if (arrayImageData[pageNum - 1].dataImage.length === 0) {
 				await displayPage(shownPdf, pageNum);
       } else {
 				document.getElementById("the-canvas").src = await loadImage();
 			}
-      console.log('length ', arrayImageData[pageNum - 1].dataImage.length);
     }
 
 		async function loadImage() {
@@ -174,7 +164,7 @@
 				return;
 			}
 			pageNum--;
-			console.log('pageNum: ',pageNum);
+			$("#pdf-current-page").text(pageNum);
 			document.getElementById("the-canvas").src = await loadImage();
     }
 		/*
@@ -211,27 +201,13 @@
         await loadData();
 
         //$("#upload-button").hide();
-        //console.log('shownPdf: ', shownPdf);
         
-        $("#cmd").css('visibility', 'hidden');
+        $("#controlpdf").css('visibility', 'hidden');
         // Send the object url of the pdf
         showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
       }
     });
 
-		/*
-    // Previous page of the PDF
-    $("#pdf-prev").on('click', function () {
-      if (__CURRENT_PAGE != 1)
-        showPage(--__CURRENT_PAGE);
-    });
-
-    // Next page of the PDF
-    $("#pdf-next").on('click', function () {
-      if (__CURRENT_PAGE != __TOTAL_PAGES)
-        showPage(++__CURRENT_PAGE);
-    });
-		*/
     async function loadData() {
       pdfScale = 1; // make pdfScale a global variable
       shownPdf; // another global we'll use for the buttons
@@ -260,69 +236,22 @@
 
       pagesSeen = 0;
     }
-		/*
-    function showPage(page_no) {
-      __PAGE_RENDERING_IN_PROGRESS = 1;
-      __CURRENT_PAGE = page_no;
-
-      // Disable Prev & Next buttons while page is being loaded
-      $("#pdf-next, #pdf-prev").attr('disabled', 'disabled');
-
-      // While page is being rendered hide the canvas and show a loading message
-      $("#pdf-canvas").hide();
-      $("#page-loader").show();
-
-      // Update current page in HTML
-      $("#pdf-current-page").text(page_no);
-
-      // Fetch the page
-      __PDF_DOC.getPage(page_no).then(function (page) {
-        // As the canvas is of a fixed width we need to set the scale of the viewport accordingly
-        var scale_required = __CANVAS.width / page.getViewport(1).width;
-
-        // Get viewport of the page at required scale
-        var viewport = page.getViewport(scale_required);
-
-        // Set canvas height
-        __CANVAS.height = viewport.height;
-
-        var renderContext = {
-          canvasContext: __CANVAS_CTX,
-          viewport: viewport
-        };
-
-        // Render the page contents in the canvas
-        page.render(renderContext).then(function () {
-          __PAGE_RENDERING_IN_PROGRESS = 0;
-
-          // Re-enable Prev & Next buttons
-          $("#pdf-next, #pdf-prev").removeAttr('disabled');
-
-          // Show the canvas and hide the page loader
-          $("#pdf-canvas").show();
-          $("#page-loader").hide();
-        });
-      });
-    }
-		*/
+		
     /////////////////// save PDF ///////////////////
 
     $('#cmd').click(async function () {
-			console.log('pageNum: ', pageNum);
-      //arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-      // no carga el array correctamente
 			if(pagesSeen < __TOTAL_PAGES) {
 				arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 				pageNum++;
 			  await loadPage();
-      }
+				pagesSeen = __TOTAL_PAGES;
+      } else {
+				arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
+			}
 			var pdf = new jsPDF('p', 'mm', [canvasWidthOringin , canvasHeightOringin]);
-			//console.log('__TOTAL_PAGES: ', __TOTAL_PAGES + ' arrayImageData: ', arrayImageData.length);
 			for (let x=0;x < __TOTAL_PAGES;x++){
-				console.log('X: ', x);
 				const imgData = arrayImageData[x].dataImage;
 				pdf.setPage(x+1);//declare that we're working on that page
-				//console.log('imgData', imgData);
 				pdf.addImage(imgData, 'jpeg', 0, 0, canvasWidthOringin , canvasHeightOringin);
 				(__TOTAL_PAGES - 1 !== x ) ? pdf.addPage(): '';
 			}
@@ -331,65 +260,20 @@
 
 		async function loadPage(){
 			await displayPage(shownPdf, pageNum);
-			//arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			debugger;
-			//pageNum++;
-			var noCopy = false;
-			//arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
+			var addArrayImage = false;
 			for (let x = pageNum; x <= __TOTAL_PAGES + 1; x++) {
-				console.log('x: ', x);
 				pageNum = x;
 				await PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfHelloWorld(shownPdf) {
-					console.log('pdf2: ', shownPdf);
-					debugger;
 					await displayPage(shownPdf, pageNum);
-					debugger;
-					if(noCopy) {
+					if(addArrayImage) {
 						arrayImageData[x - 2].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 					}
-					noCopy = true;
+					addArrayImage = true;
 				});
-				/*
-				await displayPage(shownPdf, pageNum);
-				debugger;
-				//await saveArray(x);
-				arrayImageData[x - 1].dataImage = drawCanvas.toDataURL("image/jpeg", 1.0);
-				debugger;
-				*/
-				/*if (arrayImageData[x - 1].dataImage.length === 0) {
-					console.log('x: ', x + '  url: ', canvas.toDataURL("image/jpeg", 1.0));
-					arrayImageData[x - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);//URL.createObjectURL($("#file-to-upload").get(0).files[0]);//
-				}*/
 			}
-			for(let y=0;y<arrayImageData.length;y++){
-				console.log('array: ', arrayImageData[y].dataImage);
-			}
+			pageNum--;
 		}
 
-		async function saveArray(x){
-		  if (arrayImageData[x - 1].dataImage.length === 0) {
-				console.log('x: ', x + '  url: ', canvas.toDataURL("image/jpeg", 1.0));
-				document.getElementById("the-canvas").src = await loadImage();//await saveImageNoShowed();
-				var canvasNew = document.getElementById('the-canvas');
-				console.log('canvasNew ', canvasNew.toDataURL("image/jpeg", 1.0));
-				arrayImageData[x - 1].dataImage = canvasNew.toDataURL("image/jpeg", 1.0);//URL.createObjectURL($("#file-to-upload").get(0).files[0]);//
-			}
-		}
-
-		async function saveImageNoShowed() {
-			var imagenSave = new Image();
-			imagenSave.src = URL.createObjectURL($("#file-to-upload").get(0).files[0]);
-			imagenSave.onload = async function () {
-				canvas = document.getElementById('the-canvas');
-				drawContext = canvas.getContext('2d');
-				canvas.width = imagenSave.width;
-				canvas.height = imagenSave.height;
-				drawContext.scale(1, 1);
-				drawContext.save();
-			  drawContext.drawImage(imagenSave, 0, 0);
-			};
-			return imagenSave.src;
-		}
     ////////////////////////////////////////////////////
 
     /////////////////// draw canvas  ///////////////////
@@ -500,8 +384,7 @@
 				contextErase.clearRect(0, 0, canvasErase.width, canvasErase.height);
         document.getElementById('the-canvas').value = "";
 				$('#file-to-upload').val('');
-				
-				//document.getElementById("canvasimg").style.display = "none";
+        $("#controlpdf").css('visibility', 'hidden');
 			//}
     }
 
