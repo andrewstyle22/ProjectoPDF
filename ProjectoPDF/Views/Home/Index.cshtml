@@ -31,12 +31,10 @@
 	<button type="button" value="clear" id="clr" size="23" onclick="erase()">Clear</button>
 	<br />
 	<br />
-
+	<div id="loading" style="font-size: x-large;">Loading page ...</div>
 	<canvas id="the-canvas" style="border: 1px solid black;"></canvas>
 	<img id="canvasimg"  style="display:none;">
 </div>
-<div id="annotation-layer"></div>
-<div id="editor"></div>
 <script id="script">
     var pageNum = 1;
     var pdfScale = 1; // make pdfScale a global variable
@@ -66,6 +64,9 @@
     var pagesSeen = 0;
 
     async function showPDF(pdf_url) {
+  		document.getElementById("loading").style.visibility = "visible";
+      $("#pdf-current-page, #pdf-total-page").css("visibility", "visible").css("display", "");
+			$("#page-count-container").css("visibility", "hidden");
 			pdfDoc = PDFJS.getDocument(pdf_url).then(async function getPdfFile(pdf) {
 				await displayPage(pdf, 1);
 				shownPdf = pdf;
@@ -77,18 +78,30 @@
 				// Hide the pdf loader and show pdf container in HTML
 				$("#pdf-total-pages").text(__TOTAL_PAGES);
 				
-    		$("#pdf-current-page").text('1');
-
 				for(var x = 1;x <= __TOTAL_PAGES; x++) {
 					var data = { numPage: x, dataImage: ''};
 					arrayImageData.push(data);
 				}
+				await loadPage();
+				pageNum = 1;
+				await displayPage(shownPdf,pageNum);
+				document.getElementById("the-canvas").style.visibility = "visible";
+  			//document.getElementById("the-canvas").style.display = "inline";
+				$("#pdf-current-page").text('1');
+  			document.getElementById("loading").style.margin = "0px";
+  			document.getElementById("loading").style.visibility = "hidden";
 				//await loadPageInit(); no carga bien las primeras páginas
 				// Show the first page
 				//showPage(1);
 			}).catch(function (error) {
+				console.log('error: ', error);
+				alert('loading error: ', error);
 				// If error re-show the upload button
-				alert('catch ', error.message);
+  			document.getElementById("loading").style.visibility = "hidden";
+  			document.getElementById("controlpdf").style.visibility = "hidden";
+      	$("#controlpdf,#pdf-current-page, #pdf-total-page").css("visibility", "hidden").css("display", "none");
+				$("#page-count-container").css("visibility", "hidden");
+  			document.getElementById("the-canvas").style.visibility = "hidden";
 			});
     }
 
@@ -119,7 +132,7 @@
     }
 
     async function displayPage(pdf, num) {
-      pdf.getPage(num).then(async function getPage(page) { await renderPage(page); });
+      pdf.getPage(num).then( async function getPage(page) { await renderPage(page); });
     }
 
     var nextbutton = document.getElementById("nextbutton");
@@ -186,23 +199,28 @@
     // Upon click this should should trigger click on the #file-to-upload file input element
     // This is better than showing the not-good-looking file input element
     $("#upload-button").on('click', function () {
-        $("#file-to-upload").trigger('click');
+      $("#file-to-upload").trigger('click');
     });
 
     // When user chooses a PDF file
     $("#file-to-upload").on('change', async function () {
       // Validate whether PDF
       //erase();
+  		document.getElementById("loading").style.visibility = "hidden";
+			document.getElementById("the-canvas").style.visibility = "hidden";
+
       if($("#file-to-upload").get(0).files[0] !== undefined) {
         if (['application/pdf'].indexOf($("#file-to-upload").get(0).files[0].type) == -1) {
           alert('Error : Not a PDF');
           return;
         }
         await loadData();
+  			document.getElementById("loading").style.visibility = "visible";
 
         //$("#upload-button").hide();
         
         $("#controlpdf").css('visibility', 'hidden');
+      	$("#the-canvas").css("display", "");
         // Send the object url of the pdf
         showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
       }
@@ -241,14 +259,13 @@
 
     $('#cmd').click(async function () {
 			$("#buttonTool").children().prop('disabled',true);
-			if(pagesSeen < __TOTAL_PAGES) {
 				arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
+			/*if(pagesSeen < __TOTAL_PAGES) {
 				pageNum++;
 			  await loadPage();
 				pagesSeen = __TOTAL_PAGES;
-      } else {
-				arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			}
+      } */
+			console.log('pageNum: ', pageNum);
 			var orientation = (canvasWidthOringin > canvasHeightOringin) ? 'l': 'p';
 			var pdf = new jsPDF(orientation, 'mm', [canvasWidthOringin , canvasHeightOringin]);
 			for (let x=0;x < __TOTAL_PAGES;x++){
@@ -271,7 +288,7 @@
 			for (let x = pageNum; x <= __TOTAL_PAGES + 1; x++) {
 				$("#pdf-current-page").text(pageNum-1);
 				pageNum = x;
-				await timeout(1000);
+				await timeout(100);
 				await PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfFile(shownPdf) {
 					await displayPage(shownPdf, pageNum);
 					if(addArrayImage) {
