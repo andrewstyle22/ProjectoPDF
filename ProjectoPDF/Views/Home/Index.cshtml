@@ -249,7 +249,8 @@
       } else {
 				arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 			}
-			var pdf = new jsPDF('p', 'mm', [canvasWidthOringin , canvasHeightOringin]);
+			var orientation = (canvasWidthOringin > canvasHeightOringin) ? 'l': 'p';
+			var pdf = new jsPDF(orientation, 'mm', [canvasWidthOringin , canvasHeightOringin]);
 			for (let x=0;x < __TOTAL_PAGES;x++){
 				const imgData = arrayImageData[x].dataImage;
 				pdf.setPage(x+1);//declare that we're working on that page
@@ -268,18 +269,21 @@
 			await displayPage(shownPdf, pageNum);
 			var addArrayImage = false;
 			for (let x = pageNum; x <= __TOTAL_PAGES + 1; x++) {
-				$("#pdf-current-page").text(pageNum);
+				$("#pdf-current-page").text(pageNum-1);
 				pageNum = x;
 				await timeout(1000);
 				await PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfFile(shownPdf) {
 					await displayPage(shownPdf, pageNum);
 					if(addArrayImage) {
-						arrayImageData[x - 2].dataImage = canvas.toDataURL("image/jpeg", 1.0);
+						if (arrayImageData[x - 2].dataImage.length === 0) {
+							arrayImageData[x - 2].dataImage = canvas.toDataURL("image/jpeg", 1.0);
+						}
 					}
 					addArrayImage = true;
 				});
 			}
 			pageNum--;
+			$("#pdf-current-page").text(pageNum);
 		}
 
     ////////////////////////////////////////////////////
