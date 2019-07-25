@@ -18,7 +18,7 @@
 	<div id="pdf-total-pages"></div>
 </div>
 <div style="text-align: center;margin-top: 17px;margin-bottom: 10px;font-weight: bolder;">Choose Color</div>
-<div style="text-align: center">
+<div id="buttonTool" style="text-align: center">
 	<button type="button" style="background:green;" id="green" onclick="color(this)">green</button>
 	<button type="button" style="background:blue;" id="blue" onclick="color(this)">blue</button>
 	<button type="button" style="background:red;" id="red" onclick="color(this)">red</button>
@@ -240,6 +240,7 @@
     /////////////////// save PDF ///////////////////
 
     $('#cmd').click(async function () {
+			$("#buttonTool").children().prop('disabled',true);
 			if(pagesSeen < __TOTAL_PAGES) {
 				arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 				pageNum++;
@@ -255,6 +256,7 @@
 				pdf.addImage(imgData, 'jpeg', 0, 0, canvasWidthOringin , canvasHeightOringin);
 				(__TOTAL_PAGES - 1 !== x ) ? pdf.addPage(): '';
 			}
+			$("#buttonTool").children().prop('disabled',false);
 			await pdf.save("download.pdf"); 
     });
 
