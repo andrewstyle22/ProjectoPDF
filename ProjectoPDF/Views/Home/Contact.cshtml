@@ -2,404 +2,61 @@
     ViewBag.Title = "Contact";
 }
 <style>
-    .pdfobject-container {
-        max-width: 100%;
-        width: 600px;
-        height: 600px;
-        border: 10px solid rgba(0,0,0,.2);
-        margin: 0;
-    }
+	.pdfobject-container {
+		max-width: 100%;
+		width: 600px;
+		height: 600px;
+		border: 10px solid rgba(0,0,0,.2);
+		margin: 0;
+	}
+	
 </style>
-<div id="my-pdf"></div>
-<script>
-    PDFObject.embed("~/../18178221710.pdf");
-</script>
-<!--
-<button id="upload-button">Select PDF</button>
-<input type="file" id="file-to-upload" accept="application/pdf" />
-<div id="controlpdf" style="text-align: center">
-    <button id="prevbutton" type="button">prev page</button>
-    <button id="nextbutton" type="button">next page</button>
-    <button id="zoominbutton" type="button">zoom in</button>
-    <button id="zoomoutbutton" type="button">zoom out</button>
-    <button id="cmd">generate PDF</button>
+
+
+<div id="sidebar" style="margin-top:20px">
+	<div class="colorButtons">
+		<h3>Colour</h3>
+		<input type="color" id="colorpicker" value="#c81464" class="colorpicker">
+	</div>
+	<div class="colorButtons">
+		<h3>Bg Color</h3>
+		<input type="color" value="#ffffff" id="bgcolorpicker" class="colorpicker">
+	</div>
+
+	<div class="toolsButtons">
+		<h3>Tools</h3>
+		<button id="eraser" class="btn btn-default"><span class="glyphicon glyphicon-erase" aria-hidden="true"></span></button>
+		<button id="clear" class="btn btn-danger"> <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span></button>
+	</div>
+
+	<div class="buttonSize">
+		<h3>Size (<span id="showSize">5</span>)</h3>
+		<input type="range" min="1" max="50" value="5" step="1" id="controlSize">
+	</div>
+
+	<div class="canvasSize">
+		<h3>Canvas</h3>
+		<div class="input-group">
+			<span class="input-group-addon">X</span>
+			<input type="number" id="sizeX" class="form-control" placeholder="sizeX" value="800" class="size">
+		</div>
+		<div class="input-group">
+			<span class="input-group-addon">Y</span>
+			<input type="number" id="sizeY" class="form-control" placeholder="sizeY" value="800" class="size">
+		</div>
+		<input type="button" class="updateSize btn btn-success" value="Update" id="canvasUpdate">
+	</div>
+	<div class="Storage">
+		<h3>Storage</h3>
+		<input type="button" value="Save" class="btn btn-warning" id="save">
+		<input type="button" value="Load" class="btn btn-warning" id="load">
+		<input type="button" value="Clear" class="btn btn-warning" id="clearCache">
+	</div>
+	<div class="extra">
+		<h3>Extra</h3>
+		<a id="saveToImage" class="btn btn-warning">Download</a>
+	</div>
 </div>
-<div style="text-align: center;margin-top: 17px;margin-bottom: 10px;font-weight: bolder;">Choose Color</div>
-<div id="canvasDiv" style="text-align: center">
-    <ul class="demoToolList">
-        <li>Clear the canvas: <button id="clearCanvasSimpleTools" type="button">Clear</button></li>
-        <li>Choose a color: <button id="choosePurpleSimpleTools" type="button">Purple</button><button id="chooseGreenSimpleTools" type="button">Green</button><button id="chooseYellowSimpleTools" type="button">Yellow</button><button id="chooseBrownSimpleTools" type="button">Brown</button></li>
-        <li>Choose a size: <button id="chooseSmallSimpleTools" type="button">Small</button><button id="chooseNormalSimpleSizes" type="button">Normal</button><button id="chooseLargeSimpleTools" type="button">Large</button><button id="chooseHugeSimpleTools" type="button">Huge</button></li>
-        <li><span class="highlight">Choose a tool: </span><button id="chooseCrayonSimpleTools" type="button">Crayon</button><button id="chooseMarkerSimpleTools" type="button">Marker</button><button id="chooseEraserSimpleTools" type="button">Eraser</button></li>
-    </ul>
-    <br />
-    <br />
-
-    <canvas id="the-canvas" style="border: 1px solid black;"></canvas>
-</div>-->
-<!--
-<script id="script">
-    
-    var canvas;
-    var context;
-    var canvasWidth = 0;
-    var canvasHeight = 0;
-    var padding = 25;
-    var lineWidth = 8;
-    var colorPurple = "#cb3594";
-    var colorGreen = "#659b41";
-    var colorYellow = "#ffcf33";
-    var colorBrown = "#986928";
-    var outlineImage = new Image();
-    var crayonImage = new Image();
-    var markerImage = new Image();
-    var eraserImage = new Image();
-    var crayonBackgroundImage = new Image();
-    var markerBackgroundImage = new Image();
-    var eraserBackgroundImage = new Image();
-    var crayonTextureImage = new Image();
-    var
-    var clickX_simpleTools = new Array();
-    var clickY_simpleTools = new Array();
-    var clickDrag_simpleTools = new Array();
-    var clickColor_simpleTools = new Array();
-    var clickSize_simpleTools = new Array();
-    var paint_simpleTools;
-    var canvas_simpleTools;
-    var context_simpleTools;
-    var curColor_simpleTools = colorPurple;
-    var curSize_simpleTools = "normal";
-
-    var clickTool_simpleTools = new Array();
-    var curTool_simpleTools = "crayon";
-
-    var clickX = new Array();
-    var clickY = new Array();
-    var clickColor = new Array();
-    var clickTool = new Array();
-    var clickSize = new Array();
-    var clickDrag = new Array();
-    var paint = false;
-    var curColor = colorPurple;
-    var curTool = "crayon";
-    var curSize = "normal";
-    var mediumStartX = 18;
-    var mediumStartY = 19;
-    var mediumImageWidth = 93;
-    var mediumImageHeight = 46;
-    var drawingAreaX = 111;
-    var drawingAreaY = 11;
-    var drawingAreaWidth = 267;
-    var drawingAreaHeight = 200;
-    var toolHotspotStartY = 23;
-    var toolHotspotHeight = 38;
-    var sizeHotspotStartY = 157;
-    var sizeHotspotHeight = 36;
-    var sizeHotspotWidthObject = new Object();
-    sizeHotspotWidthObject.huge = 39;
-    sizeHotspotWidthObject.large = 25;
-    sizeHotspotWidthObject.normal = 18;
-    sizeHotspotWidthObject.small = 16;
-
-    var totalLoadResources = 8
-    var curLoadResNum = 0;
-
-    var pdfScale = 1;
-    var canvasDiv = '';
-    
-    function prepareSimpleToolsCanvas() {
-        console.log('entra');
-        // Create the canvas (Neccessary for IE because it doesn't know what a canvas element is)
-        //var canvasDiv = document.getElementById('the-canvas'); //document.getElementById('canvasSimpleToolsDiv');
-        //canvas_simpleTools = document.createElement('canvas');
-        //canvas_simpleTools.setAttribute('width', canvasWidth);
-        //canvas_simpleTools.setAttribute('height', canvasHeight);
-        //canvas_simpleTools.setAttribute('id', 'canvasSimpleTools');
-        //canvasDiv.appendChild(canvas_simpleTools);
-        var tagCanvas = '<canvas id="the-canvas" style="border: 1px solid black;"></canvas>';
-       /*if (typeof G_vmlCanvasManager != 'undefined') {
-            canvas_simpleTools = G_vmlCanvasManager.initElement(canvasDiv);
-        } */
-        //console.log('canvas_simpleTools: ', canvas_simpleTools);
-        console.log('canvasDiv: ', canvasDiv);
-        //context_simpleTools = canvas_simpleTools.getContext("2d"); // Grab the 2d canvas context
-        // Note: The above code is a workaround for IE 8 and lower. Otherwise we could have used:
-        //     context = document.getElementById('canvas').getContext("2d");
-        
-
-        // Add mouse events
-        // ----------------
-        /*canvasDiv.mousedown(function (e) {
-            console.log('e ',e);
-            // Mouse down location
-            var mouseX = e.pageX - this.offsetLeft;
-            var mouseY = e.pageY - this.offsetTop;
-
-            paint_simpleTools = true;
-            addClickSimpleTools(mouseX, mouseY, false);
-            redrawSimpleTools();
-        });*/
-		canvasDiv.addEventListener("mousedown", function (e) {
-            console.log('e ',e);
-			var mouseX = e.pageX - this.offsetLeft;
-            var mouseY = e.pageY - this.offsetTop;
-
-            paint_simpleTools = true;
-            addClickSimpleTools(mouseX, mouseY, false);
-            redrawSimpleTools();
-		}, false);
-        canvasDiv.mousemove(function (e) {
-            if (paint_simpleTools) {
-                addClickSimpleTools(e.pageX - this.offsetLeft, e.pageY - this.offsetTop, true);
-                redrawSimpleTools();
-            }
-        });
-
-        canvasDiv.mouseup(function (e) {
-            paint_simpleTools = false;
-            redrawSimpleTools();
-        });
-
-        canvasDiv.mouseleave(function (e) {
-            paint_simpleTools = false;
-        });
-
-        $('#choosePurpleSimpleTools').mousedown(function (e) {
-            curColor_simpleTools = colorPurple;
-        });
-        $('#chooseGreenSimpleTools').mousedown(function (e) {
-            curColor_simpleTools = colorGreen;
-        });
-        $('#chooseYellowSimpleTools').mousedown(function (e) {
-            curColor_simpleTools = colorYellow;
-        });
-        $('#chooseBrownSimpleTools').mousedown(function (e) {
-            curColor_simpleTools = colorBrown;
-        });
-        $('#chooseSmallSimpleTools').mousedown(function (e) {
-            curSize_simpleTools = "small";
-        });
-        $('#chooseNormalSimpleTools').mousedown(function (e) {
-            curSize_simpleTools = "normal";
-        });
-        $('#chooseLargeSimpleTools').mousedown(function (e) {
-            curSize_simpleTools = "large";
-        });
-        $('#chooseHugeSimpleTools').mousedown(function (e) {
-            curSize_simpleTools = "huge";
-        });
-        $('#chooseCrayonSimpleTools').mousedown(function (e) {
-            curTool_simpleTools = "crayon";
-        });
-        $('#chooseMarkerSimpleTools').mousedown(function (e) {
-            curTool_simpleTools = "marker";
-        });
-        $('#chooseEraserSimpleTools').mousedown(function (e) {
-            curTool_simpleTools = "eraser";
-        });
-
-        $('#clearCanvasSimpleTools').mousedown(function (e) {
-            clickX_simpleTools = new Array();
-            clickY_simpleTools = new Array();
-            clickDrag_simpleTools = new Array();
-            clickColor_simpleTools = new Array();
-            clickSize_simpleTools = new Array();
-            clearCanvas_simpleTools();
-        });
-    }
-
-    function addClickSimpleTools(x, y, dragging)
-    {
-        clickX_simpleTools.push(x);
-        clickY_simpleTools.push(y);
-        clickDrag_simpleTools.push(dragging);
-        clickTool_simpleTools.push(curTool_simpleTools);
-        if(curTool_simpleTools == "eraser"){
-            clickColor_simpleTools.push("#ffffff");
-        }else{
-            clickColor_simpleTools.push(curColor_simpleTools);
-        }
-        clickSize_simpleTools.push(curSize_simpleTools);
-    }
-
-    function clearCanvas_simpleTools()
-    {
-        context_simpleTools.clearRect(0, 0, canvasWidth, canvasHeight);
-    }
-
-    function redrawSimpleTools()
-    {
-        // Make sure required resources are loaded before redrawing
-        if(curLoadResNum < totalLoadResources){ return; }
+<div><canvas id="canvas"></canvas></div>
 	
-        clearCanvas_simpleTools();
-	
-        var radius;
-        context_simpleTools.lineJoin = "round";
-			
-        for(var i=0; i < clickX_simpleTools.length; i++)
-        {
-            if(clickSize_simpleTools[i] == "small"){
-                radius = 2;
-            }else if(clickSize_simpleTools[i] == "normal"){
-                radius = 5;
-            }else if(clickSize_simpleTools[i] == "large"){
-                radius = 10;
-            }else if(clickSize_simpleTools[i] == "huge"){
-                radius = 20;
-            }
-	
-            context_simpleTools.beginPath();
-            if(clickDrag_simpleTools[i] && i){
-                context_simpleTools.moveTo(clickX_simpleTools[i-1], clickY_simpleTools[i-1]);
-            }else{
-                context_simpleTools.moveTo(clickX_simpleTools[i]-1, clickY_simpleTools[i]);
-            }
-            context_simpleTools.lineTo(clickX_simpleTools[i], clickY_simpleTools[i]);
-            context_simpleTools.closePath();
-            context_simpleTools.strokeStyle = clickColor_simpleTools[i];
-            context_simpleTools.lineWidth = radius;
-            context_simpleTools.stroke();
-        }
-	
-        if(curTool_simpleTools == "crayon"){
-            context_simpleTools.drawImage(crayonTextureImage, 0, 0, canvasWidth, canvasHeight);
-        }
-    }
-
-    //////////////////////// load pdf   ///////////////////
-
-    var pageNum = 1;
-    var pdfScale = 1; // make pdfScale a global variable
-    var shownPdf; // another global we'll use for the buttons
-    var url = '' // PDF to load: change this to a file that exists;
-
-    var __PDF_DOC,
-        __CURRENT_PAGE,
-        __TOTAL_PAGES,
-        __PAGE_RENDERING_IN_PROGRESS = 0,
-        __CANVAS = $('#the-canvas').get(0),
-        __CANVAS_CTX = __CANVAS.getContext('2d');
-
-    var pdfDoc = '';
-
-    var drawCanvas = '';
-    var drawCcontext = '';
-
-    function showPDF(pdf_url) {
-        $("#pdf-loader").show();
-        pdfDoc = PDFJS.getDocument(pdf_url).then(function getPdfHelloWorld(pdf) {
-            displayPage(pdf, 1);
-            shownPdf = pdf;
-        });
-        PDFJS.getDocument({ url: pdf_url }).then(function (pdf_doc) {
-            __PDF_DOC = pdf_doc;
-            __TOTAL_PAGES = __PDF_DOC.numPages;
-            myState.pdf = pdf_doc;
-            // Hide the pdf loader and show pdf container in HTML
-            $("#pdf-loader").hide();
-            $("#pdf-contents").show();
-            $("#pdf-total-pages").text(__TOTAL_PAGES);
-
-            // Show the first page
-            //showPage(1);
-        }).catch(function (error) {
-            // If error re-show the upload button
-            $("#pdf-loader").hide();
-            $("#upload-button").show();
-
-            alert(error.message);
-        });;
-    }
-
-    function renderPage(page) {
-        var scale = pdfScale; // render with global pdfScale variable
-        var viewport = page.getViewport(scale);
-        var canvas = document.getElementById('the-canvas');
-        canvasDiv = canvas;
-        var context = canvas.getContext('2d');
-        console.log('context: ', context);
-        context_simpleTools = canvas.getContext('2d');
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        canvasWidth = viewport.width;
-        canvasHeight = viewport.height;
-        var renderContext = {
-            canvasContext: context,
-            viewport: viewport
-        };
-        page.render(renderContext);
-        
-	    prepareSimpleToolsCanvas();
-    }
-
-    function displayPage(pdf, num) {
-        pdf.getPage(num).then(function getPage(page) { renderPage(page); });
-    }
-
-    var nextbutton = document.getElementById("nextbutton");
-    nextbutton.onclick = function () {
-        if (pageNum >= shownPdf.numPages) {
-            return;
-        }
-        pageNum++;
-        displayPage(shownPdf, pageNum);
-    }
-
-    var prevbutton = document.getElementById("prevbutton");
-    prevbutton.onclick = function () {
-        if (pageNum <= 1) {
-            return;
-        }
-        pageNum--;
-        displayPage(shownPdf, pageNum);
-    }
-
-    var zoominbutton = document.getElementById("zoominbutton");
-    zoominbutton.onclick = function () {
-        pdfScale = pdfScale + 0.25;
-        displayPage(shownPdf, pageNum);
-    }
-
-    var zoomoutbutton = document.getElementById("zoomoutbutton");
-    zoomoutbutton.onclick = function () {
-        if (pdfScale <= 0.25) {
-            return;
-        }
-        pdfScale = pdfScale - 0.25;
-        displayPage(shownPdf, pageNum);
-    }
-    // Upon click this should should trigger click on the #file-to-upload file input element
-    // This is better than showing the not-good-looking file input element
-    $("#upload-button").on('click', function () {
-        $("#file-to-upload").trigger('click');
-    });
-
-    // When user chooses a PDF file
-    $("#file-to-upload").on('change', function () {
-        // Validate whether PDF
-        if (['application/pdf'].indexOf($("#file-to-upload").get(0).files[0].type) == -1) {
-            alert('Error : Not a PDF');
-            return;
-        }
-
-        //$("#upload-button").hide();
-
-        // Send the object url of the pdf
-        showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
-    });
-
-    // Previous page of the PDF
-    $("#pdf-prev").on('click', function () {
-        if (__CURRENT_PAGE != 1)
-            showPage(--__CURRENT_PAGE);
-    });
-
-    // Next page of the PDF
-    $("#pdf-next").on('click', function () {
-        if (__CURRENT_PAGE != __TOTAL_PAGES)
-            showPage(++__CURRENT_PAGE);
-    });
-
-</script>
--->
+  <script src="~/Scripts/paintCanvas.js"></script>
