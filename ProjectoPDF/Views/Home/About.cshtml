@@ -70,6 +70,8 @@
 
     var pageView = [];//get width and height of PDF
 
+    var isMobile = ('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch;
+    
     async function showPDF(pdf_url) {
   		document.getElementById("loading").style.visibility = "visible";
       $("#pdf-current-page, #pdf-total-page").css("visibility", "visible").css("display", "");
@@ -78,7 +80,7 @@
 				//await displayPage(pdf, 1);
 				__PDF_DOC = pdf;
 			});*/
-			PDFJS.getDocument({ url: pdf_url }).then(async function (pdf_doc) {
+			await PDFJS.getDocument({ url: pdf_url }).then(async function (pdf_doc) {
         __PDF_DOC = pdf_doc;
 				__TOTAL_PAGES = __PDF_DOC.numPages;
 				// myState.pdf = pdf_doc;
@@ -230,7 +232,7 @@
         $("#controlpdf").css('visibility', 'hidden');
       	$("#the-canvas").css("display", "");
         // Send the object url of the pdf
-        showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
+        await showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
       }
     });
 
@@ -282,7 +284,7 @@
 			await pdf.save("download.pdf"); 
     });
 
-		function timeout(ms) {
+		async function timeout(ms) {
 			return new Promise(resolve => setTimeout(resolve, ms));
 		}
 
@@ -292,13 +294,13 @@
 			for (let x = pageNum; x <= __TOTAL_PAGES + 1; x++) {
 				$("#pdf-current-page").text(pageNum-1);
 				pageNum = x;
-				//timeout(100);
-				PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfFile(__PDF_DOC) {
+				await timeout(300);
+				await PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfFile(__PDF_DOC) {
 					await displayPage(__PDF_DOC, pageNum);
 					if(addArrayImage) {
-						if (arrayImageData[x - 2].dataImage.length === 0) {
+						//if (arrayImageData[x - 2].dataImage.length === 0) {
 							arrayImageData[x - 2].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-						}
+						//}
 					}
 					addArrayImage = true;
 				});
@@ -338,9 +340,15 @@
       document.getElementById('colorpicker').addEventListener('change', function() {
         currentColor = this.value;
       });
+      // mouse/touch events ..
+      canvas.addEventListener((isMobile ? 'touchstart' : 'mousedown'), function() {mousedown(canvas, event);});
+      canvas.addEventListener((isMobile ? 'touchmove' : 'mousemove'), function() {mousemove(canvas, event);});
+      canvas.addEventListener((isMobile ? 'touchend' : 'mouseup'), mouseup);
+      /*
       canvas.addEventListener('mousedown', function() {mousedown(canvas, event);});
       canvas.addEventListener('mousemove',function() {mousemove(canvas, event);});
       canvas.addEventListener('mouseup',mouseup);
+      */
     }
 
     function createCanvas() {
@@ -394,6 +402,10 @@
     isMouseDown=false
     //store()
   }
+
+
+  ////////// mobile //////////
+
 
 
 
