@@ -17,11 +17,11 @@
   createCanvas();
 
   // BUTTON EVENT HANDLERS
-
+/*
   document.getElementById('canvasUpdate').addEventListener('click', function() {
     createCanvas();
     redraw();
-  });
+  });*/
   document.getElementById('colorpicker').addEventListener('change', function() {
     currentColor = this.value;
   });
@@ -31,6 +31,7 @@
     redraw();
     currentBg = ctx.fillStyle;
   });
+  /*
   document.getElementById('controlSize').addEventListener('change', function() {
     currentSize = this.value;
     document.getElementById("showSize").innerHTML = this.value;
@@ -47,7 +48,7 @@
     linesArray = [];
     console.log("Cache cleared!");
   });
-
+*/
   // REDRAW 
 
   function redraw() {
@@ -72,16 +73,17 @@
 
   function createCanvas() {
     canvas.id = "canvas";
-    canvas.width = parseInt(document.getElementById("sizeX").value);
-    canvas.height = parseInt(document.getElementById("sizeY").value);
+    canvas.width = "600";//parseInt(document.getElementById("sizeX").value);
+    canvas.height = "1200";//parseInt(document.getElementById("sizeY").value);
     canvas.style.zIndex = 8;
-    canvas.style.position = "absolute";
+    //canvas.style.position = "absolute";
+    //canvas.style.marginTop = "75px";
     canvas.style.border = "1px solid";
     ctx.fillStyle = currentBg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     //body.appendChild(canvas);
   }
-
+/*
   // DOWNLOAD CANVAS
 
   function downloadCanvas(link, canvas, filename) {
@@ -125,7 +127,7 @@
     currentSize = 50;
     currentColor = ctx.fillStyle
   }
-
+*/
   // GET MOUSE POSITION
 
   function getMousePos(canvas, evt) {
