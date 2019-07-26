@@ -292,8 +292,8 @@
 			for (let x = pageNum; x <= __TOTAL_PAGES + 1; x++) {
 				$("#pdf-current-page").text(pageNum-1);
 				pageNum = x;
-				await timeout(100);
-				await PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfFile(__PDF_DOC) {
+				//timeout(100);
+				PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfFile(__PDF_DOC) {
 					await displayPage(__PDF_DOC, pageNum);
 					if(addArrayImage) {
 						if (arrayImageData[x - 2].dataImage.length === 0) {
