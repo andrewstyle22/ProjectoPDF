@@ -69,8 +69,6 @@
     var pagesSeen = 0;
 
     var pageView = [];//get width and height of PDF
-
-    var isMobile = ('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch;
     
     async function showPDF(pdf_url) {
   		document.getElementById("loading").style.visibility = "visible";
@@ -331,6 +329,20 @@
     var currentColor = "rgb(0,0,0)";
     var currentBg = "white";
 
+		var drawing = false;
+		var mousePos = {x:0, y:0};
+		var lastPos = mousePos;
+    var isMobile = ('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch;
+		let isMobile = false; 
+
+		let userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+		if (/windows phone/i.test(userAgent) ||
+				/Android/i.test(userAgent) || 
+				/iPad|iPhone|iPod/.test(userAgent)) {
+				isMobile = true;
+		}
+
     function init() {
       canvas = drawCanvas; //document.getElementById('the-canvas');
       ctx = drawContext; //canvas.getContext("2d");
@@ -351,29 +363,28 @@
       */
     }
 
-    function createCanvas() {
-      canvas.id = "canvas";
-      canvas.width = "600";//parseInt(document.getElementById("sizeX").value);
-      canvas.height = "1200";//parseInt(document.getElementById("sizeY").value);
-      canvas.style.zIndex = 8;
-      //canvas.style.position = "absolute";
-      //canvas.style.marginTop = "75px";
-      canvas.style.border = "1px solid";
-      ctx.fillStyle = currentBg;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      //body.appendChild(canvas);
-    }
 
     // GET MOUSE POSITION
 
-  function getMousePos(canvas, evt) {
+  function getMousePos(canvas, touchOrMouseEvent) {
     var rect = canvas.getBoundingClientRect();
-    return {
+		return {
+			x: (isMobile ? touchOrMouseEvent.touches[0].clientX : touchOrMouseEvent.clientX) - rect.left,
+			y: (isMobile ? touchOrMouseEvent.touches[0].clientY : touchOrMouseEvent.clientY) - rect.top
+		};
+    /*return {
       x: evt.clientX - rect.left,
       y: evt.clientY - rect.top
-    };
+    };*/
   }
 
+	function getTouchPos(canvasDom, touchEvent) {
+		var rect = canvasDom.getBoundingClientRect();
+		return {
+			x: touchEvent.touches[0].clientX - rect.left,
+			y: touchEvent.touches[0].clientY - rect.top
+		};
+	}
   // ON MOUSE DOWN
 
   function mousedown(canvas, evt) {
@@ -403,7 +414,18 @@
     //store()
   }
 
-
+	function createCanvas() {
+		canvas.id = "canvas";
+		canvas.width = "600";//parseInt(document.getElementById("sizeX").value);
+		canvas.height = "1200";//parseInt(document.getElementById("sizeY").value);
+		canvas.style.zIndex = 8;
+		//canvas.style.position = "absolute";
+		//canvas.style.marginTop = "75px";
+		canvas.style.border = "1px solid";
+		ctx.fillStyle = currentBg;
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		//body.appendChild(canvas);
+	}
   ////////// mobile //////////
 
 

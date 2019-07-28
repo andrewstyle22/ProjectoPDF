@@ -151,6 +151,17 @@
 			}
     }
 
+    var prevbutton = document.getElementById("prevbutton");
+    prevbutton.onclick = async function () {
+			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
+			if (pageNum <= 1) {
+				return;
+			}
+			pageNum--;
+			$("#pdf-current-page").text(pageNum);
+			document.getElementById("the-canvas").src = await loadImage();
+    }
+		
 		async function loadImage() {
 			var imagen = new Image();
 			if (arrayImageData[pageNum - 1].dataImage.length > 0) {
@@ -170,16 +181,6 @@
 			return imagen.src;
 		}
 
-    var prevbutton = document.getElementById("prevbutton");
-    prevbutton.onclick = async function () {
-			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			if (pageNum <= 1) {
-				return;
-			}
-			pageNum--;
-			$("#pdf-current-page").text(pageNum);
-			document.getElementById("the-canvas").src = await loadImage();
-    }
 		/*
     var zoominbutton = document.getElementById("zoominbutton");
     zoominbutton.onclick = async function () {
