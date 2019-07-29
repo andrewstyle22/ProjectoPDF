@@ -281,31 +281,42 @@
 			$("#buttonTool").children().prop('disabled',false);
 			await pdf.save("download.pdf"); 
     });
-
-		async function timeout(ms) {
+		/*
+		function timeout(ms) {
 			return new Promise(resolve => setTimeout(resolve, ms));
 		}
-
+		*/
+		function timeout(ms, doc, num) {
+			return new Promise(function (resolve, reject) {	
+				setTimeout(async function() {
+					await displayPage(doc, num);
+					console.log('terminó');
+					resolve();
+				}, ms);
+			})
+		}
+	
 		async function loadPage(){
-			await displayPage(__PDF_DOC, pageNum);
-			await timeout(800);
-			var addArrayImage = false;
-			for (let x = pageNum; x <= __TOTAL_PAGES + 1; x++) {
-				$("#pdf-current-page").text(pageNum-1);
-				pageNum = x;
-				//await timeout(300);
-				await PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfFile(__PDF_DOC) {
-					await displayPage(__PDF_DOC, pageNum);
-					await timeout(800);
-					if(addArrayImage) {
-						//if (arrayImageData[x - 2].dataImage.length === 0) {
-							arrayImageData[x - 2].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-							await timeout(800);
-						//}
-					}
-					addArrayImage = true;
-				});
-			}
+			//await displayPage(__PDF_DOC, pageNum);
+			await timeout(500, __PDF_DOC, pageNum).then(async function() {
+				var addArrayImage = false;
+				for (let x = pageNum; x <= __TOTAL_PAGES + 1; x++) {
+					$("#pdf-current-page").text(pageNum-1);
+					pageNum = x;
+					//await timeout(500);
+					await PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfFile(__PDF_DOC) {
+						//await displayPage(__PDF_DOC, pageNum);
+						await timeout(500, __PDF_DOC, pageNum).then(function() {
+							if(addArrayImage) {
+								//if (arrayImageData[x - 2].dataImage.length === 0) {
+										arrayImageData[x - 2].dataImage = canvas.toDataURL("image/jpeg", 1.0);
+								//}
+							}
+						});
+						addArrayImage = true;
+					});
+				}
+			});
 			pageNum--;
 			$("#pdf-current-page").text(pageNum);
 		}
