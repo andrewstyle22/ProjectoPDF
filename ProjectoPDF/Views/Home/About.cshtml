@@ -298,6 +298,7 @@
 					if(addArrayImage) {
 						//if (arrayImageData[x - 2].dataImage.length === 0) {
 							arrayImageData[x - 2].dataImage = canvas.toDataURL("image/jpeg", 1.0);
+							await timeout(300);
 						//}
 					}
 					addArrayImage = true;
@@ -379,17 +380,27 @@
 			if (e.target == canvas) {
 				e.preventDefault();
 			}
-		}, false);
+		}, { passive: false });
 		document.body.addEventListener("touchend", function (e) {
 			if (e.target == canvas) {
 				e.preventDefault();
 			}
-		}, false);
+		}, { passive: false });
 		document.body.addEventListener("touchmove", function (e) {
 			if (e.target == canvas) {
 				e.preventDefault();
 			}
-		}, false);
+		}, { passive: false });
+		/*document.body.addEventListener("touchcancel", function (e) {
+			if (e.target == canvas) {
+				e.preventDefault();
+			}
+		}, { passive: false });*/
+		document.body.addEventListener("touchcancel", function(e) {
+			if (e.target == canvas) {
+				e.preventDefault();
+			}
+		}, { passive: false });
 
     // GET MOUSE POSITION
 

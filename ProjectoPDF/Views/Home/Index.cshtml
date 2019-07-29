@@ -288,16 +288,19 @@
 
 		async function loadPage(){
 			await displayPage(__PDF_DOC, pageNum);
+			await timeout(800);
 			var addArrayImage = false;
 			for (let x = pageNum; x <= __TOTAL_PAGES + 1; x++) {
 				$("#pdf-current-page").text(pageNum-1);
 				pageNum = x;
-				await timeout(300);
+				//await timeout(300);
 				await PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfFile(__PDF_DOC) {
 					await displayPage(__PDF_DOC, pageNum);
+					await timeout(800);
 					if(addArrayImage) {
 						//if (arrayImageData[x - 2].dataImage.length === 0) {
 							arrayImageData[x - 2].dataImage = canvas.toDataURL("image/jpeg", 1.0);
+							await timeout(800);
 						//}
 					}
 					addArrayImage = true;
@@ -382,6 +385,7 @@
 			if (e.target == canvas) {
 				e.preventDefault();
 			}
+			
 		}, false);
 		document.body.addEventListener("touchend", function (e) {
 			if (e.target == canvas) {
