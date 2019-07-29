@@ -332,14 +332,25 @@
 		var drawing = false;
 		var mousePos = {x:0, y:0};
 		var lastPos = mousePos;
-    var isMobile = ('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch;
+    var isMobile2 = ('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch;
+		console.log('isMobile2: ', isMobile2);
 		let isMobile = false; 
-
+		if (window.navigator.msPointerEnabled && navigator.msMaxTouchPoints > 0) {
+			console.log("Surface Pro");
+		}
+		if (window.PointerEvent || window.MSPointerEvent || window.navigator.msPointerEnabled || window.navigator.pointerEnabled) {
+				console.log("MSPointerEvent");
+		}
+		let IE_11_PLUS	= !!window.navigator.pointerEnabled || !!window.PointerEvent;
+		console.log('IE_11_PLUS ', IE_11_PLUS);
 		let userAgent = navigator.userAgent || navigator.vendor || window.opera;
 
-		if (/windows phone/i.test(userAgent) ||
+		if ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|windows phone|Opera Mini/i.test(navigator.userAgent)) {
+		/*if (/windows phone/i.test(userAgent) ||
 				/Android/i.test(userAgent) || 
-				/iPad|iPhone|iPod/.test(userAgent)) {
+				/iPad|iPhone|iPod/.test(userAgent) ||
+				('ontouchstart' in window) || 
+				window.DocumentTouch && document instanceof DocumentTouch) {*/
 				isMobile = true;
 		}
 
@@ -363,6 +374,22 @@
       */
     }
 
+		// Prevent scrolling when touching the canvas
+		document.body.addEventListener("touchstart", function (e) {
+			if (e.target == canvas) {
+				e.preventDefault();
+			}
+		}, false);
+		document.body.addEventListener("touchend", function (e) {
+			if (e.target == canvas) {
+				e.preventDefault();
+			}
+		}, false);
+		document.body.addEventListener("touchmove", function (e) {
+			if (e.target == canvas) {
+				e.preventDefault();
+			}
+		}, false);
 
     // GET MOUSE POSITION
 
@@ -388,7 +415,7 @@
   // ON MOUSE DOWN
 
   function mousedown(canvas, evt) {
-    var mousePos = getMousePos(canvas, evt);
+    //var mousePos = getMousePos(canvas, evt);
     isMouseDown=true
     var currentPosition = getMousePos(canvas, evt);
     ctx.moveTo(currentPosition.x, currentPosition.y)

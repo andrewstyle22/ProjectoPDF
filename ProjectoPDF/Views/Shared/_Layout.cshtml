@@ -90,6 +90,10 @@
 			background: transparent;
 			height: 40px;
 		}
+
+		#the-canvas {
+			touch-action: none;
+		}
 	</style>
 </head>
 <body>
@@ -106,8 +110,8 @@
 			<div class="navbar-collapse collapse">
 				<ul class="nav navbar-nav">
 					<li>@Html.ActionLink("Home", "Index", "Home")</li>
-					<li>@Html.ActionLink("About", "About", "Home")</li>
-					<li>@Html.ActionLink("Paint", "Contact", "Home")</li>
+				<!--	<li>@Html.ActionLink("About", "About", "Home")</li>
+					<li>@Html.ActionLink("Paint", "Contact", "Home")</li>-->
 				</ul>
 			</div>
 		</div>

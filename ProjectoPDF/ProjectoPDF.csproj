@@ -137,8 +137,16 @@
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <None Include="Properties\PublishProfiles\ProjectoPDF - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\ProjectoPDF - Web Deploy1.pubxml" />
+    <None Include="Properties\PublishProfiles\ProjectoPDF - Web Deploy2.pubxml" />
+    <None Include="Properties\PublishProfiles\ProjectoPDF - Web Deploy3.pubxml" />
+    <None Include="Properties\PublishProfiles\ProjectoPDF - Web Deploy4.pubxml" />
+    <None Include="Properties\PublishProfiles\ProjectoPDF - Web Deploy5.pubxml" />
     <None Include="Properties\PublishProfiles\ProjectoPDF03 - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\ProjectoPDF04 - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\ProjectoPDF05 - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\ProjectoPDF06 - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\ProjectPDF - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
@@ -151,7 +159,6 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
-    <Content Include="Scripts\paintCanvas.js" />
     <Content Include="Scripts\pdf.js" />
     <Content Include="Scripts\pdf.worker.js" />
     <Content Include="Web.config" />

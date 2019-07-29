@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "About";
 }
 
 <button id="upload-button">Select PDF</button>
@@ -9,7 +9,7 @@
 	<button id="nextbutton" type="button">next page</button>
 	<!--<button id="zoominbutton" type="button">zoom in</button>
 	<button id="zoomoutbutton" type="button">zoom out</button>-->
-	<button id="cmd">generate PDF</button>
+	<button id="cmd">Save PDF</button>
 </div>
 <div style="text-align: center;visibility: hidden;margin-top:10px;" id="page-count-container">
 	Page 
@@ -17,8 +17,14 @@
 	of 
 	<div id="pdf-total-pages"></div>
 </div>
-<div style="text-align: center;margin-top: 17px;margin-bottom: 10px;font-weight: bolder;">Choose Color</div>
+<div class="colorButtons" style="text-align: center;margin-top: 17px;margin-bottom: 10px;font-weight: bolder;">
+  <h3>Colour</h3>
+
+  <input type="color" id="colorpicker" value="#000" class="colorpicker">
+
+</div>
 <div id="buttonTool" style="text-align: center">
+  <!--
 	<button type="button" style="background:green;" id="green" onclick="color(this)">green</button>
 	<button type="button" style="background:blue;" id="blue" onclick="color(this)">blue</button>
 	<button type="button" style="background:red;" id="red" onclick="color(this)">red</button>
@@ -26,29 +32,28 @@
 	<button type="button" style="background:orange;" id="orange" onclick="color(this)">orange</button>
 	<button type="button" style="background:black;color:white" id="black" onclick="color(this)">black</button>
 	<button type="button" style="background:white;" id="white" onclick="color(this)">white</button>
-
+-->
 	<!--<button type="button" value="save" id="btn" size="30" onclick="save()">Save</button>-->
 	<button type="button" value="clear" id="clr" size="23" onclick="erase()">Clear</button>
 	<br />
 	<br />
 	<div id="loading" style="font-size: x-large;">Loading page ...</div>
-	<canvas id="the-canvas" style="border: 1px solid black;"></canvas>
+	<canvas id="the-canvas" style="border: 1px solid black;padding-bottom: 1px;"></canvas>
 	<img id="canvasimg"  style="display:none;">
 </div>
 <script id="script">
     var pageNum = 1;
     var pdfScale = 1; // make pdfScale a global variable
-    var shownPdf; // another global we'll use for the buttons
+    var __PDF_DOC; // will hold the PDFDocumentProxy object that is passed into the callback of the getDocumentPromise.
     var url = '' // PDF to load: change this to a file that exists;
 
-    var __PDF_DOC,
-        __CURRENT_PAGE,
-        __TOTAL_PAGES,
-        __PAGE_RENDERING_IN_PROGRESS = 0,
-        __CANVAS = $('#the-canvas').get(0),
-        __CANVAS_CTX = __CANVAS.getContext('2d');
+    var __CURRENT_PAGE;// will hold the current page number.
+    var __TOTAL_PAGES;// will hold the total no of pages in the PDF
+    //var __PAGE_RENDERING_IN_PROGRESS = 0;
+    var __CANVAS = $('#the-canvas').get(0);// will hold the canvas element 
+    var __CANVAS_CTX = __CANVAS.getContext('2d'); // will hold the canvas context 
 
-    var pdfDoc = '';
+    //var pdfDoc = '';
 
     var widthCanvas = 0;
     var heightCanvas = 0;
@@ -63,16 +68,18 @@
 
     var pagesSeen = 0;
 
+    var pageView = [];//get width and height of PDF
+    
     async function showPDF(pdf_url) {
   		document.getElementById("loading").style.visibility = "visible";
       $("#pdf-current-page, #pdf-total-page").css("visibility", "visible").css("display", "");
 			$("#page-count-container").css("visibility", "hidden");
-			pdfDoc = PDFJS.getDocument(pdf_url).then(async function getPdfFile(pdf) {
-				await displayPage(pdf, 1);
-				shownPdf = pdf;
-			});
-			PDFJS.getDocument({ url: pdf_url }).then(async function (pdf_doc) {
-				__PDF_DOC = pdf_doc;
+			/*pdfDoc = PDFJS.getDocument(pdf_url).then(async function getPdfFile(pdf) {
+				//await displayPage(pdf, 1);
+				__PDF_DOC = pdf;
+			});*/
+			await PDFJS.getDocument({ url: pdf_url }).then(async function (pdf_doc) {
+        __PDF_DOC = pdf_doc;
 				__TOTAL_PAGES = __PDF_DOC.numPages;
 				// myState.pdf = pdf_doc;
 				// Hide the pdf loader and show pdf container in HTML
@@ -84,7 +91,7 @@
 				}
 				await loadPage();
 				pageNum = 1;
-				await displayPage(shownPdf,pageNum);
+				await displayPage(__PDF_DOC,pageNum);
 				document.getElementById("the-canvas").style.visibility = "visible";
   			//document.getElementById("the-canvas").style.display = "inline";
 				$("#pdf-current-page").text('1');
@@ -98,8 +105,8 @@
 				alert('loading error: ', error);
 				// If error re-show the upload button
   			document.getElementById("loading").style.visibility = "hidden";
-  			document.getElementById("controlpdf").style.visibility = "hidden";
-      	$("#controlpdf,#pdf-current-page, #pdf-total-page").css("visibility", "hidden").css("display", "none");
+  			//document.getElementById("controlpdf").style.visibility = "hidden";
+      	$("#controlpdf,#pdf-current-page, #pdf-total-page").css("visibility", "hidden");
 				$("#page-count-container").css("visibility", "hidden");
   			document.getElementById("the-canvas").style.visibility = "hidden";
 			});
@@ -132,12 +139,13 @@
     }
 
     async function displayPage(pdf, num) {
+      console.log('pdf: ', pdf);
       pdf.getPage(num).then( async function getPage(page) { await renderPage(page); });
     }
 
     var nextbutton = document.getElementById("nextbutton");
     nextbutton.onclick = async function () {
-			if (pageNum >= shownPdf.numPages) {
+			if (pageNum >= __PDF_DOC.numPages) {
 				return;
 			}
 			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
@@ -145,23 +153,12 @@
 			$("#pdf-current-page").text(pageNum);
       pagesSeen = pageNum;
 			if (arrayImageData[pageNum - 1].dataImage.length === 0) {
-				await displayPage(shownPdf, pageNum);
+				await displayPage(__PDF_DOC, pageNum);
       } else {
 				document.getElementById("the-canvas").src = await loadImage();
 			}
     }
 
-    var prevbutton = document.getElementById("prevbutton");
-    prevbutton.onclick = async function () {
-			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			if (pageNum <= 1) {
-				return;
-			}
-			pageNum--;
-			$("#pdf-current-page").text(pageNum);
-			document.getElementById("the-canvas").src = await loadImage();
-    }
-		
 		async function loadImage() {
 			var imagen = new Image();
 			if (arrayImageData[pageNum - 1].dataImage.length > 0) {
@@ -181,11 +178,21 @@
 			return imagen.src;
 		}
 
+    var prevbutton = document.getElementById("prevbutton");
+    prevbutton.onclick = async function () {
+			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
+			if (pageNum <= 1) {
+				return;
+			}
+			pageNum--;
+			$("#pdf-current-page").text(pageNum);
+			document.getElementById("the-canvas").src = await loadImage();
+    }
 		/*
     var zoominbutton = document.getElementById("zoominbutton");
     zoominbutton.onclick = async function () {
 			pdfScale = pdfScale + 0.25;
-			await displayPage(shownPdf, pageNum);
+			await displayPage(__PDF_DOC, pageNum);
     }
 
     var zoomoutbutton = document.getElementById("zoomoutbutton");
@@ -194,7 +201,7 @@
 				return;
 			}
 			pdfScale = pdfScale - 0.25;
-			await displayPage(shownPdf, pageNum);
+			await displayPage(__PDF_DOC, pageNum);
     }
 		*/
     // Upon click this should should trigger click on the #file-to-upload file input element
@@ -223,23 +230,23 @@
         $("#controlpdf").css('visibility', 'hidden');
       	$("#the-canvas").css("display", "");
         // Send the object url of the pdf
-        showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
+        await showPDF(URL.createObjectURL($("#file-to-upload").get(0).files[0]));
       }
     });
 
     async function loadData() {
       pdfScale = 1; // make pdfScale a global variable
-      shownPdf; // another global we'll use for the buttons
+      __PDF_DOC; // another global we'll use for the buttons
       url = '' // PDF to load: change this to a file that exists;
 
        __PDF_DOC,
       __CURRENT_PAGE,
       __TOTAL_PAGES,
-      __PAGE_RENDERING_IN_PROGRESS = 0,
+      //__PAGE_RENDERING_IN_PROGRESS = 0,
       __CANVAS = $('#the-canvas').get(0),
       __CANVAS_CTX = __CANVAS.getContext('2d');
 
-      pdfDoc = '';
+      //pdfDoc = '';
 			pageNum = 1;
 
       widthCanvas = 0;
@@ -260,13 +267,9 @@
 
     $('#cmd').click(async function () {
 			$("#buttonTool").children().prop('disabled',true);
-				arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-			/*if(pagesSeen < __TOTAL_PAGES) {
-				pageNum++;
-			  await loadPage();
-				pagesSeen = __TOTAL_PAGES;
-      } */
+			arrayImageData[pageNum - 1].dataImage = canvas.toDataURL("image/jpeg", 1.0);
 			console.log('pageNum: ', pageNum);
+			console.log(canvasWidthOringin, canvasHeightOringin);
 			var orientation = (canvasWidthOringin > canvasHeightOringin) ? 'l': 'p';
 			var pdf = new jsPDF(orientation, 'mm', [canvasWidthOringin , canvasHeightOringin]);
 			for (let x=0;x < __TOTAL_PAGES;x++){
@@ -279,23 +282,23 @@
 			await pdf.save("download.pdf"); 
     });
 
-		function timeout(ms) {
+		async function timeout(ms) {
 			return new Promise(resolve => setTimeout(resolve, ms));
 		}
 
 		async function loadPage(){
-			await displayPage(shownPdf, pageNum);
+			await displayPage(__PDF_DOC, pageNum);
 			var addArrayImage = false;
 			for (let x = pageNum; x <= __TOTAL_PAGES + 1; x++) {
 				$("#pdf-current-page").text(pageNum-1);
 				pageNum = x;
-				await timeout(100);
-				await PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfFile(shownPdf) {
-					await displayPage(shownPdf, pageNum);
+				await timeout(300);
+				await PDFJS.getDocument(URL.createObjectURL($("#file-to-upload").get(0).files[0])).then(async function getPdfFile(__PDF_DOC) {
+					await displayPage(__PDF_DOC, pageNum);
 					if(addArrayImage) {
-						if (arrayImageData[x - 2].dataImage.length === 0) {
+						//if (arrayImageData[x - 2].dataImage.length === 0) {
 							arrayImageData[x - 2].dataImage = canvas.toDataURL("image/jpeg", 1.0);
-						}
+						//}
 					}
 					addArrayImage = true;
 				});
@@ -303,108 +306,6 @@
 			pageNum--;
 			$("#pdf-current-page").text(pageNum);
 		}
-
-    ////////////////////////////////////////////////////
-
-    /////////////////// draw canvas  ///////////////////
-    var canvas, ctx, flag = false,
-        prevX = 0,
-        currX = 0,
-        prevY = 0,
-        currY = 0,
-        dot_flag = false;
-
-    var x = "black",
-        y = 2;
-
-    function init() {
-			canvas = drawCanvas; //document.getElementById('the-canvas');
-			//ctx = drawContext; //canvas.getContext("2d");
-			w = widthCanvas;
-			h = heightCanvas;
-
-			canvas.addEventListener("mousemove", function (e) {
-					findxy('move', e)
-			}, false);
-			canvas.addEventListener("mousedown", function (e) {
-					findxy('down', e)
-			}, false);
-			canvas.addEventListener("mouseup", function (e) {
-					findxy('up', e)
-			}, false);
-			canvas.addEventListener("mouseout", function (e) {
-					findxy('out', e)
-			}, false);
-    }
-
-    function color(obj) {
-			switch (obj.id) {
-				case "green":
-						x = "green";
-						break;
-				case "blue":
-						x = "blue";
-						break;
-				case "red":
-						x = "red";
-						break;
-				case "yellow":
-						x = "yellow";
-						break;
-				case "orange":
-						x = "orange";
-						break;
-				case "black":
-						x = "black";
-						break;
-				case "white":
-						x = "white";
-						break;
-			}
-			if (x == "white") y = 14;
-			else y = 2;
-    }
-		
-    function findxy(res, e) {
-			if (res == 'down') {
-				prevX = currX;
-				prevY = currY;
-				currX = e.clientX - canvas.offsetLeft;
-				currY = e.clientY - canvas.offsetTop;
-
-				flag = true;
-				dot_flag = true;
-				if (dot_flag) {
-					drawContext.beginPath();
-					drawContext.fillStyle = x;
-					drawContext.fillRect(currX, currY, 2, 2);
-					drawContext.closePath();
-					dot_flag = false;
-				}
-			}
-			if (res == 'up' || res == "out") {
-				flag = false;
-			}
-			if (res == 'move') {
-				if (flag) {
-					prevX = currX;
-					prevY = currY;
-					currX = e.clientX - canvas.offsetLeft;
-					currY = e.clientY - canvas.offsetTop;
-					draw();
-				}
-			}
-    }
-
-    function draw() {
-			drawContext.beginPath();
-			drawContext.moveTo(prevX, prevY);
-			drawContext.lineTo(currX, currY);
-			drawContext.strokeStyle = x;
-			drawContext.lineWidth = y;
-			drawContext.stroke();
-			drawContext.closePath();
-    }
 
     function erase() {
       var canvasErase = document.getElementById('the-canvas');
@@ -417,14 +318,131 @@
         $("#controlpdf").css('visibility', 'hidden');
 			//}
     }
+    ///////////////////////////////////
+    
+    /////////// Draw Canvas ///////////
+    var isMouseDown=false;
+    var canvas;//document.getElementById("the-canvas");
+    var ctx;//canvas.getContext('2d');
+    var linesArray = [];
+    currentSize = 1;
+    var currentColor = "rgb(0,0,0)";
+    var currentBg = "white";
 
-		/*
-    function save() {
-			document.getElementById("canvasimg").style.border = "2px solid";
-			var dataURL = canvas.toDataURL();
-			document.getElementById("canvasimg").src = dataURL;
-			document.getElementById("canvasimg").style.display = "inline";
+		var drawing = false;
+		var mousePos = {x:0, y:0};
+		var lastPos = mousePos;
+		let isMobile = false; 
+		let isSufaceDevice = isSurface();
+		console.log('isSufaceDevice: ', isSufaceDevice);
+
+		function isSurface() {
+			const isWindows = navigator.userAgent.indexOf('Windows') > -1;
+			const maxTouchPoints = navigator.maxTouchPoints || navigator.msMaxTouchPoints;
+			const isTouchable = 'ontouchstart' in window
+				|| maxTouchPoints > 0
+				|| window.matchMedia && matchMedia('(any-pointer: coarse)').matches;
+
+			return isWindows && isTouchable;
+		}
+		let userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+		if ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|windows phone|Opera Mini/i.test(navigator.userAgent) || isSurface()) {
+		/*if (/windows phone/i.test(userAgent) ||
+				/Android/i.test(userAgent) || 
+				/iPad|iPhone|iPod/.test(userAgent) ||
+				('ontouchstart' in window) || 
+				window.DocumentTouch && document instanceof DocumentTouch) {*/
+				isMobile = true;
+		}
+		console.log('isMobile: ', isMobile);isMobile
+
+    function init() {
+      canvas = drawCanvas; //document.getElementById('the-canvas');
+      ctx = drawContext; //canvas.getContext("2d");
+      w = widthCanvas;
+      h = heightCanvas;
+
+      document.getElementById('colorpicker').addEventListener('change', function() {
+        currentColor = this.value;
+      });
+      // mouse/touch events ..
+      canvas.addEventListener((isMobile ? 'touchstart' : 'mousedown'), function() {mousedown(canvas, event);});
+      canvas.addEventListener((isMobile ? 'touchmove' : 'mousemove'), function() {mousemove(canvas, event);});
+      canvas.addEventListener((isMobile ? 'touchend' : 'mouseup'), mouseup);
+      /*
+      canvas.addEventListener('mousedown', function() {mousedown(canvas, event);});
+      canvas.addEventListener('mousemove',function() {mousemove(canvas, event);});
+      canvas.addEventListener('mouseup',mouseup);
+      */
     }
-		*/
-    //////////////////////////////////////////////
+
+		// Prevent scrolling when touching the canvas
+		document.body.addEventListener("touchstart", function (e) {
+			if (e.target == canvas) {
+				e.preventDefault();
+			}
+		}, false);
+		document.body.addEventListener("touchend", function (e) {
+			if (e.target == canvas) {
+				e.preventDefault();
+			}
+		}, false);
+		document.body.addEventListener("touchmove", function (e) {
+			if (e.target == canvas) {
+				e.preventDefault();
+			}
+		}, false);
+
+    // GET MOUSE POSITION
+
+  function getMousePos(canvas, touchOrMouseEvent) {
+    var rect = canvas.getBoundingClientRect();
+		return {
+			x: (isMobile ? touchOrMouseEvent.touches[0].clientX : touchOrMouseEvent.clientX) - rect.left,
+			y: (isMobile ? touchOrMouseEvent.touches[0].clientY : touchOrMouseEvent.clientY) - rect.top
+		};
+    /*return {
+      x: evt.clientX - rect.left,
+      y: evt.clientY - rect.top
+    };*/
+  }
+
+	function getTouchPos(canvasDom, touchEvent) {
+		var rect = canvasDom.getBoundingClientRect();
+		return {
+			x: touchEvent.touches[0].clientX - rect.left,
+			y: touchEvent.touches[0].clientY - rect.top
+		};
+	}
+  // ON MOUSE DOWN
+
+  function mousedown(canvas, evt) {
+    //var mousePos = getMousePos(canvas, evt);
+    isMouseDown=true
+    var currentPosition = getMousePos(canvas, evt);
+    ctx.moveTo(currentPosition.x, currentPosition.y)
+    ctx.beginPath();
+    ctx.lineWidth  = currentSize;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = currentColor;
+  }
+
+  // ON MOUSE MOVE
+
+  function mousemove(canvas, evt) {
+    if(isMouseDown){
+      var currentPosition = getMousePos(canvas, evt);
+      ctx.lineTo(currentPosition.x, currentPosition.y)
+      ctx.stroke();
+      //store(currentPosition.x, currentPosition.y, currentSize, currentColor);
+    }
+  }
+
+  function mouseup() {
+    isMouseDown=false
+    //store()
+  }
+  ////////// mobile //////////
+
 </script>
