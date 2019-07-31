@@ -62,6 +62,7 @@
 			console.log(arrayImageData);
       showPage(1);
 			$("#the-canvas, #controlpdf").css("visibility", "visible");
+			$("#loading").css("visibility", "hidden");
 			init();
 			// $("#controlpdf").css("visibility", "visible");
     }).catch(function (error) {
@@ -69,6 +70,7 @@
       $("#the-canvas, #controlpdf").hide();
 			// $("#controlpdf").hide();
       $("#upload-button").show();
+			$("#loading").css("visibility", "hidden");
 
       alert(error.message);
 			console.log('error: ', error);
@@ -76,6 +78,7 @@
   }
 
   async function showPage(page_no) {
+		$("#loading").css("visibility", "visible");
     __PAGE_RENDERING_IN_PROGRESS = 1;
     __CURRENT_PAGE = page_no;
 
