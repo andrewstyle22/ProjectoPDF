@@ -71,6 +71,7 @@
       $("#upload-button").show();
 
       alert(error.message);
+			console.log('error: ', error);
     });;
   }
 
@@ -162,7 +163,7 @@
       //showPage(++__CURRENT_PAGE);
 		}
   });
-
+  /*
 	var zoominbutton = document.getElementById("zoominbutton");
 	zoominbutton.onclick = function() {
 		pdfScale = pdfScale + 0.25;
@@ -183,7 +184,7 @@
 		//showPage(__CURRENT_PAGE);
 		//displayPage(shownPdf, pageNum);
 	}
-
+	*/
 
 	async function loadImage() {
 		let imagen = new Image();
@@ -236,8 +237,8 @@
 
 	/////// Draw Canvas  \\\\\\\\
 	var isMouseDown=false;
-	var canvas;//document.getElementById("the-canvas");
-	var ctx;//canvas.getContext('2d');
+	var canvas = __CANVAS;//document.getElementById("the-canvas");
+	var ctx = __CANVAS_CTX;//canvas.getContext('2d');
 	var linesArray = [];
 	currentSize = 1;
 	var currentColor = "rgb(0,0,0)";
@@ -265,7 +266,6 @@
 			isMobile = true;
 	}
 	
-
 	// Prevent scrolling when touching the canvas
 	document.body.addEventListener("touchstart", function (e) {
 		if (e.target == canvas) {
