@@ -279,7 +279,7 @@
 		if (e.target == canvas) {
 			e.preventDefault();
 		}
-	}, false);
+	}, { passive: false });
 
 	function init() {
 		canvas = __CANVAS; //document.getElementById('the-canvas');
